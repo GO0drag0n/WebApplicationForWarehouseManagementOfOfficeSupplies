@@ -12,7 +12,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
         public string Model { get; set; }
         public int Quantity { get; set; }
         public string Status { get; set; } = "Pending";
-        public int UserID { get; set; }
+        public string UserID { get; set; }
+
+        public ICollection<RequestHistory> RequestHistories { get; set; }
 
         [ForeignKey("CategoryID")]
         public Category Category { get; set; }

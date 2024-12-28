@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Identity;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
 {
-    public class Role
+    public class Role : IdentityRole
     {
-        [Key]
-        public int RoleID { get; set; }
-        public string RoleName { get; set; }
         public ICollection<UserRole> UserRoles { get; set; }
     }
 }

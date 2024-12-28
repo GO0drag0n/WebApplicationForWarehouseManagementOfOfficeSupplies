@@ -7,7 +7,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
     {
         [Key]
         public int LogID { get; set; }
-        public int UserID { get; set; }
+        public string UserID { get; set; }
         public string ActionType { get; set; }
         public string EntityAffected { get; set; }
         public string Details { get; set; }

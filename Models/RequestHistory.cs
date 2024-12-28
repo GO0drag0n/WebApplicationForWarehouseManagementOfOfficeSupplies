@@ -5,13 +5,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
 {
     public class RequestHistory
     {
-        [Key]
-        public int HistoryID { get; set; }
-        public int RequestID { get; set; }
-        public string Status { get; set; }
-        public DateTime Timestamp { get; set; } = DateTime.Now;
-
-        [ForeignKey("RequestID")]
+        public int Id { get; set; }
+        public int RequestId { get; set; }
         public Request Request { get; set; }
+        public string UpdatedByUserId { get; set; }
+        public User UpdatedBy { get; set; }
     }
 }
