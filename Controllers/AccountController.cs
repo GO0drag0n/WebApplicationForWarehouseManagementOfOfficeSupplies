@@ -80,5 +80,76 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+        [HttpGet]
+        public IActionResult Manage()
+        {
+            var user = _userManager.GetUserAsync(User).Result;
+
+            var model = new ManageAccountViewModel
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(ManageAccountViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("Manage", model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.Email = model.Email;
+            user.UserName = model.Email; // Ensure the username matches the email if needed
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View("Manage", model);
+            }
+
+            TempData["SuccessMessage"] = "Profile updated successfully!";
+            return RedirectToAction("Manage");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ManageAccountViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("Manage", model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View("Manage", model);
+            }
+
+            TempData["SuccessMessage"] = "Password changed successfully!";
+            return RedirectToAction("Manage");
+        }
+
     }
 }
