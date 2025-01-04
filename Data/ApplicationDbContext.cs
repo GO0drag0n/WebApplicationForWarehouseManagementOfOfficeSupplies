@@ -23,23 +23,24 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasMany(u => u.UserRoles)
+                      .WithOne(ur => ur.Role)
+                      .HasForeignKey(ur => ur.RoleId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            }); 
 
-            // Configure UserRole many-to-many relationship
             modelBuilder.Entity<UserRole>(entity =>
             {
+
                 entity.HasKey(ur => new { ur.UserId, ur.RoleId });
 
                 entity.HasOne(ur => ur.User)
                       .WithMany(u => u.UserRoles)
                       .HasForeignKey(ur => ur.UserId);
-
-                entity.HasOne(ur => ur.Role)
-                      .WithMany(r => r.UserRoles)
-                      .HasForeignKey(ur => ur.RoleId);
             });
 
-            // Configure Products table
             modelBuilder.Entity<Product>()
                 .Property(p => p.DeliveryPrice)
                 .HasColumnType("decimal(18,2)");
@@ -56,13 +57,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data
                 .Property(p => p.Section)
                 .IsRequired();
 
-            // Configure Request relationship
             modelBuilder.Entity<Request>()
                 .HasOne(r => r.User)
                 .WithMany()
                 .HasForeignKey(r => r.UserID);
 
-            // Configure RequestHistory relationship
             modelBuilder.Entity<RequestHistory>()
                 .HasOne(rh => rh.Request)
                 .WithMany(r => r.RequestHistories)
@@ -74,11 +73,12 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data
                 .HasForeignKey(rh => rh.UpdatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure AuditLog relationship
             modelBuilder.Entity<AuditLog>()
                 .HasOne(al => al.User)
                 .WithMany()
                 .HasForeignKey(al => al.UserID);
+
+            base.OnModelCreating(modelBuilder);
         }
     }
 }
