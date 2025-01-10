@@ -240,7 +240,14 @@ figure {
 img,
 svg {
   vertical-align: middle;
+  max-width:400px;
 }
+.register-image {
+    width:400px;
+    max-height: 400px !important;
+    object-fit: contain !important;
+}
+
 
 table {
   caption-side: bottom;

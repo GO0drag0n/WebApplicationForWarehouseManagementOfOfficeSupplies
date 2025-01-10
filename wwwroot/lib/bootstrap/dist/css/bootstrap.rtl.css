@@ -293,6 +293,7 @@ figure {
 img,
 svg {
   vertical-align: middle;
+  max-width:400px;
 }
 
 table {
@@ -586,10 +587,7 @@ progress {
   content: "— ";
 }
 
-.img-fluid {
-  max-width: 100%;
-  height: auto;
-}
+
 
 .img-thumbnail {
   padding: 0.25rem;
@@ -2141,7 +2139,7 @@ progress {
   }
 }
 .form-label {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .col-form-label {

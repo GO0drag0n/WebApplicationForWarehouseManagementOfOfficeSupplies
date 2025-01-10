@@ -11,6 +11,7 @@
     <li class="nav-item">
         <form  class="form-inline" asp-controller="Account" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
             <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+                @Html.AntiForgeryToken()
         </form>
     </li>
 }

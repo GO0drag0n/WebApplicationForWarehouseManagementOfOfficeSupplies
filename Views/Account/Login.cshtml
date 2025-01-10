@@ -1,29 +1,43 @@
 ﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.Models.LoginViewModel
 
-<h2>Login</h2>
+<link href="../Views/Account/Login.cshtml.css" rel="stylesheet" />
 
-<form asp-action="Login">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="login-container">
+    <h2>Login</h2>
 
-    <div class="form-group">
-        <label asp-for="Email" class="control-label"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
+    <div class="login-image-container">
+
+        <img id="login-img" style="width: 400px;" class="img-fluid d-none d-lg-block" src="~/Images/4957136_Mobile login.png" alt="Login image" />
+
+        <form asp-action="Login" class="col-md-8 col-lg-5">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="RememberMe" /> Remember me
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+
     </div>
+    
 
-    <div class="form-group">
-        <label asp-for="Password" class="control-label"></label>
-        <input asp-for="Password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
 
-    <div class="form-group">
-        <div class="checkbox">
-            <label>
-                <input asp-for="RememberMe" /> Remember me
-            </label>
-        </div>
-    </div>
 
-    <button type="submit" class="btn btn-primary">Login</button>
-</form>
+</div>
