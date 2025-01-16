@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 {
     /// <inheritdoc />
-    public partial class InitalMigration : Migration
+    public partial class Intital : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -64,6 +64,19 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.CategoryID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Companies",
+                columns: table => new
+                {
+                    CompanyID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CompanyName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Companies", x => x.CompanyID);
                 });
 
             migrationBuilder.CreateTable(
@@ -165,9 +178,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserId1 = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId1 = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -177,7 +188,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AspNetUserRoles_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -287,6 +298,30 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserCompanies",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CompanyId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserCompanies", x => new { x.UserId, x.CompanyId });
+                    table.ForeignKey(
+                        name: "FK_UserCompanies_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserCompanies_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "CompanyID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ActionsHistory",
                 columns: table => new
                 {
@@ -379,16 +414,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUserRoles_RoleId1",
-                table: "AspNetUserRoles",
-                column: "RoleId1");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetUserRoles_UserId1",
-                table: "AspNetUserRoles",
-                column: "UserId1");
-
-            migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
@@ -429,6 +454,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 name: "IX_Requests_UserID",
                 table: "Requests",
                 column: "UserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserCompanies_CompanyId",
+                table: "UserCompanies",
+                column: "CompanyId");
         }
 
         /// <inheritdoc />
@@ -462,6 +492,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 name: "Settings");
 
             migrationBuilder.DropTable(
+                name: "UserCompanies");
+
+            migrationBuilder.DropTable(
                 name: "Products");
 
             migrationBuilder.DropTable(
@@ -472,6 +505,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 
             migrationBuilder.DropTable(
                 name: "Requests");
+
+            migrationBuilder.DropTable(
+                name: "Companies");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

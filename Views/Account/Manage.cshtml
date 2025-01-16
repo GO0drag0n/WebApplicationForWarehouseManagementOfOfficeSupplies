@@ -3,61 +3,67 @@
     ViewData["Title"] = "Manage Account";
 }
 
-<h2>Manage Your Account</h2>
-
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="UpdateProfile" method="post">
-            <div asp-validation-summary="All" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="FirstName"></label>
-                <input asp-for="FirstName" class="form-control" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="LastName"></label>
-                <input asp-for="LastName" class="form-control" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Email"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Update Profile</button>
-        </form>
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center">
+            <h2 class="fw-bold">Manage Your Account</h2>
+        </div>
     </div>
+    <div class="row mt-4">
+        <!-- Profile Update Form -->
+        <div class="col-md-6">
+            <form asp-action="UpdateProfile" method="post" class="p-3 border rounded bg-light">
+                <h4>Update Profile</h4>
+                <hr />
 
-    <div class="col-md-6">
-        <form asp-action="ChangePassword" method="post">
-            <h4>Change Password</h4>
-            <hr />
+                <div class="form-group mb-3">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
 
-            <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="form-group mb-3">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="CurrentPassword"></label>
-                <input asp-for="CurrentPassword" class="form-control" type="password" />
-                <span asp-validation-for="CurrentPassword" class="text-danger"></span>
-            </div>
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="NewPassword"></label>
-                <input asp-for="NewPassword" class="form-control" type="password" />
-                <span asp-validation-for="NewPassword" class="text-danger"></span>
-            </div>
+                <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+            </form>
+        </div>
 
-            <div class="form-group">
-                <label asp-for="ConfirmPassword"></label>
-                <input asp-for="ConfirmPassword" class="form-control" type="password" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-            </div>
+        <!-- Password Change Form -->
+        <div class="col-md-6">
+            <form asp-action="ChangePassword" method="post" class="p-3 border rounded bg-light">
+                <h4>Change Password</h4>
+                <hr />
 
-            <button type="submit" class="btn btn-secondary">Change Password</button>
-        </form>
+                <div class="form-group mb-3">
+                    <label asp-for="CurrentPassword" class="form-label"></label>
+                    <input asp-for="CurrentPassword" class="form-control" type="password" />
+                    <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="NewPassword" class="form-label"></label>
+                    <input asp-for="NewPassword" class="form-control" type="password" />
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" type="password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-secondary w-100">Change Password</button>
+            </form>
+        </div>
     </div>
 </div>
