@@ -4,14 +4,15 @@
 }
 
 <div class="container my-4">
+
     <div class="row justify-content-center">
         <div class="col-12 text-center">
             <h2 class="fw-bold">Manage Your Account</h2>
         </div>
     </div>
+
     <div class="row mt-4">
-        <!-- Profile Update Form -->
-        <div class="col-md-6">
+        <div class="col-md-6 mb-3">
             <form asp-action="UpdateProfile" method="post" class="p-3 border rounded bg-light">
                 <h4>Update Profile</h4>
                 <hr />
@@ -38,7 +39,6 @@
             </form>
         </div>
 
-        <!-- Password Change Form -->
         <div class="col-md-6">
             <form asp-action="ChangePassword" method="post" class="p-3 border rounded bg-light">
                 <h4>Change Password</h4>
@@ -63,6 +63,23 @@
                 </div>
 
                 <button type="submit" class="btn btn-secondary w-100">Change Password</button>
+            </form>
+
+        </div>
+
+        <div class="col-md-6">
+            <form asp-action="JoinCompany" method="post" class="p-3 border rounded bg-light">
+                <h4>Join a Company</h4>
+
+                <div class="form-group">
+                    <label @* asp-for="CompanyCode" *@ class="form-label">Enter the company code</label>
+                    <input @* asp-for="CompanyCode" *@ class="form-control" />
+                    <span @* asp-validation-for="CompanyCode" *@ class="text-danger"></span>
+                </div>
+
+                
+                <button type="submit" class="btn btn-primary w-100 mt-3">Join an existing Company Client</button>
+                <button type="submit" class="btn btn-primary w-100 mt-3">Create a Company Client</button>
             </form>
         </div>
     </div>

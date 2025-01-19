@@ -1,0 +1,45 @@
+﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.Models.ProductViewModel
+
+<div class="container mt-5">
+    <div class="card" style="max-width: 500px; margin: auto;">
+        <div class="card-body">
+            <h4 class="card-title text-center mb-4">Add New Product</h4>
+            <form asp-action="Create" method="post">
+                <div class="mb-3">
+                    <label asp-for="Product.Brand" class="form-label">Brand</label>
+                    <input asp-for="Product.Brand" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.Model" class="form-label">Model</label>
+                    <input asp-for="Product.Model" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.CategoryID" class="form-label">Category</label>
+                    <select asp-for="Product.CategoryID" class="form-select" asp-items="Model.Categories"></select>
+                    <span asp-validation-for="Product.CategoryID" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.Quantity" class="form-label">Quantity</label>
+                    <input asp-for="Product.Quantity" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.Price" class="form-label">Price</label>
+                    <input asp-for="Product.Price" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.DeliveryPrice" class="form-label">Delivery Price</label>
+                    <input asp-for="Product.DeliveryPrice" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.Row" class="form-label">Row</label>
+                    <input asp-for="Product.Row" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Product.Section" class="form-label">Section</label>
+                    <input asp-for="Product.Section" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Save</button>
+            </form>
+        </div>
+    </div>
+</div>

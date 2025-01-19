@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 
@@ -11,9 +12,11 @@ using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250119213433_SeedCategories")]
+    partial class SeedCategories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -229,25 +232,25 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         {
                             CategoryID = 1,
                             Name = "Electronics",
-                            UniqueNumber = new Guid("f216f93d-e8a5-4e9f-a5b1-d9ecc2627b43")
+                            UniqueNumber = new Guid("bd7186b9-f059-4dfb-b3e8-501ee482ebb4")
                         },
                         new
                         {
                             CategoryID = 2,
                             Name = "Furniture",
-                            UniqueNumber = new Guid("a78bfec9-f45d-48c1-ae44-4483b0423c0f")
+                            UniqueNumber = new Guid("1c768a7f-7e2f-4a41-b8f3-2fcfa08febc0")
                         },
                         new
                         {
                             CategoryID = 3,
                             Name = "Stationery",
-                            UniqueNumber = new Guid("7d76af45-3e84-4da2-8f56-a1234c571038")
+                            UniqueNumber = new Guid("8ae1a2b2-636a-4230-8c73-e9b2350a6493")
                         },
                         new
                         {
                             CategoryID = 4,
                             Name = "Office Supplies",
-                            UniqueNumber = new Guid("49b93ef8-ccd8-4b98-90d5-dc7221a2a019")
+                            UniqueNumber = new Guid("f5aa1fa6-3f4c-48b6-ab6f-ff5f3a4eb31d")
                         });
                 });
 
@@ -700,7 +703,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Company", "Company")
                         .WithMany("UserCompanies")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.User", "User")

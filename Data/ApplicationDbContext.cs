@@ -40,7 +40,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, String>
             entity.HasOne(uc => uc.Company)
                   .WithMany(c => c.UserCompanies)
                   .HasForeignKey(uc => uc.CompanyId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Product Configuration
@@ -81,5 +81,15 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, String>
             .HasOne(al => al.User)
             .WithMany()
             .HasForeignKey(al => al.UserID);
+
+        modelBuilder.Entity<Category>().HasData(
+       new Category { CategoryID = 1, Name = "Electronics" },
+       new Category { CategoryID = 2, Name = "Furniture" },
+       new Category { CategoryID = 3, Name = "Stationery" },
+       new Category { CategoryID = 4, Name = "Office Supplies" }
+       );
+
     }
+
+    
 }
