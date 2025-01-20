@@ -11,23 +11,34 @@ public class CategoryController : Controller
         _context = context;
     }
 
-    // GET: Category/Create
-    public IActionResult Create()
-    {
-        return View();
-    }
+
 
     // POST: Category/Create
     [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult Create(Category category)
+    public IActionResult Create([FromBody] Category category)
     {
-        if (ModelState.IsValid)
+        if (category == null || string.IsNullOrWhiteSpace(category.Name))
         {
+            return BadRequest("Category name cannot be empty.");
+        }
+
+        try
+        {
+            // Save the new category
             _context.Categories.Add(category);
             _context.SaveChanges();
-            return RedirectToAction("Create", "Product"); // Redirect back to Add Product
+
+            // Return success response
+            return Ok(new
+            {
+                message = "Category created successfully.",
+                categoryId = category.CategoryID,
+                uniqueNumber = category.UniqueNumber
+            });
         }
-        return View(category);
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
 }

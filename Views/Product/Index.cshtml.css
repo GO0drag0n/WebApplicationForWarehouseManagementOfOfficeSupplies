@@ -1,0 +1,57 @@
+﻿@media (max-width: 576px) {
+    /* Hide the Category, Delivery Price, and Price columns in the table */
+    table th:nth-child(4),
+    table th:nth-child(6),
+    table th:nth-child(7),
+    table td:nth-child(4),
+    table td:nth-child(6),
+    table td:nth-child(7) {
+        display: none;
+    }
+
+    /* Adjust the remaining columns to fit the screen better */
+    table th,
+    table td {
+        font-size: 0.85rem;
+        text-align: center;
+    }
+
+    /* General styling adjustments */
+    .d-flex {
+        flex-direction: column;
+    }
+
+    .text-center h2 {
+        font-size: 1.25rem;
+    }
+
+    .container {
+        padding: 0 1rem;
+    }
+
+    .row {
+        flex-direction: column;
+    }
+
+        .row .col-md-9 {
+            margin-bottom: 1rem;
+        }
+
+    .form-control {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    td a.btn-sm {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    td[colspan="10"] {
+        font-size: 1rem;
+    }
+}

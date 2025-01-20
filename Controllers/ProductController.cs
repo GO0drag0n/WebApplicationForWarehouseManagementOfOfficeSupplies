@@ -1,163 +1,74 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
-public class ProductController : Controller
+namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public ProductController(ApplicationDbContext context)
+    public class ProductController : Controller
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    // GET: Product/Index
-    public IActionResult Index(string searchByBrand, string searchByModel)
-    {
-        var products = _context.Products.Include(p => p.Category).AsQueryable();
-
-        if (!string.IsNullOrEmpty(searchByBrand))
+        public ProductController(ApplicationDbContext context)
         {
-            products = products.Where(p => p.Brand.Contains(searchByBrand));
+            _context = context;
         }
 
-        if (!string.IsNullOrEmpty(searchByModel))
+        public IActionResult Index()
         {
-            products = products.Where(p => p.Model.Contains(searchByModel));
+            var products = _context.Products.Include(p => p.Category).ToList();
+            return View(products);
         }
 
-        return View(products.ToList());
-    }
-
-    // GET: Product/Create
-    public IActionResult Create()
-    {
-        var viewModel = new ProductViewModel
+        public IActionResult Create()
         {
-            Product = new Product(),
-            Categories = GetCategorySelectList()
-        };
-
-        return View(viewModel);
-    }
-
-    // POST: Product/Create
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult Create(ProductViewModel viewModel)
-    {
-        if (ModelState.IsValid)
-        {
-            try
+            var model = new ProductViewModel
             {
-                _context.Products.Add(viewModel.Product);
+                Product = new Product(), // Initialize an empty Product object
+                Categories = _context.Categories.Select(c => new SelectListItem
+                {
+                    Value = c.CategoryID.ToString(),
+                    Text = c.Name
+                }).ToList()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(ProductViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Reload categories if validation fails
+                model.Categories = _context.Categories.Select(c => new SelectListItem
+                {
+                    Value = c.CategoryID.ToString(),
+                    Text = c.Name
+                }).ToList();
+            }
+                var product = new Product
+                {
+                    Brand = model.Product.Brand,
+                    Model = model.Product.Model,
+                    CategoryID = model.Product.CategoryID,
+                    Quantity = model.Product.Quantity,
+                    DeliveryPrice = model.Product.DeliveryPrice,
+                    Price = model.Product.Price,
+                    Row = model.Product.Row,
+                    Section = model.Product.Section,
+                    UniqueNumber = Guid.NewGuid()
+                };
+
+                _context.Products.Add(product);
                 _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
+
+                return RedirectToAction("Index");
             }
-            catch (DbUpdateException)
-            {
-                ModelState.AddModelError("", "Unable to save changes. Please try again later.");
-            }
-        }
+        
 
-        // Repopulate categories in case of validation failure
-        viewModel.Categories = GetCategorySelectList();
-        return View(viewModel);
-    }
-
-    // GET: Product/Edit/{id}
-    public IActionResult Edit(int id)
-    {
-        var product = _context.Products.Include(p => p.Category).FirstOrDefault(p => p.ProductID == id);
-        if (product == null)
-        {
-            return NotFound();
-        }
-
-        var viewModel = new ProductViewModel
-        {
-            Product = product,
-            Categories = GetCategorySelectList()
-        };
-
-        return View(viewModel);
-    }
-
-    // POST: Product/Edit/{id}
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult Edit(int id, ProductViewModel viewModel)
-    {
-        if (id != viewModel.Product.ProductID)
-        {
-            return BadRequest();
-        }
-
-        if (ModelState.IsValid)
-        {
-            try
-            {
-                _context.Update(viewModel.Product);
-                _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
-            }
-            catch (DbUpdateException)
-            {
-                ModelState.AddModelError("", "Unable to save changes. Please try again later.");
-            }
-        }
-
-        // Repopulate categories in case of validation failure
-        viewModel.Categories = GetCategorySelectList();
-        return View(viewModel);
-    }
-
-    // GET: Product/Delete/{id}
-    public IActionResult Delete(int id)
-    {
-        var product = _context.Products.Include(p => p.Category).FirstOrDefault(p => p.ProductID == id);
-        if (product == null)
-        {
-            return NotFound();
-        }
-
-        return View(product);
-    }
-
-    // POST: Product/Delete/{id}
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public IActionResult DeleteConfirmed(int id)
-    {
-        var product = _context.Products.Find(id);
-        if (product != null)
-        {
-            try
-            {
-                _context.Products.Remove(product);
-                _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
-            }
-            catch (DbUpdateException)
-            {
-                ModelState.AddModelError("", "Unable to delete the product. Please try again later.");
-            }
-        }
-
-        return RedirectToAction(nameof(Index));
-    }
-
-    // Helper method to get category select list
-    private IEnumerable<SelectListItem> GetCategorySelectList()
-    {
-        return _context.Categories
-            .Select(c => new SelectListItem
-            {
-                Value = c.CategoryID.ToString(),
-                Text = c.Name
-            })
-            .ToList();
     }
 }

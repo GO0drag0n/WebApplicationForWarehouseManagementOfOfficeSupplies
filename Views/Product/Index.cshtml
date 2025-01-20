@@ -1,45 +1,72 @@
-﻿<h2>Product List</h2>
+﻿@model IEnumerable<Product>
 
-<a class="btn btn-success mb-3" asp-action="Create">Add New Product</a>
+<div class="d-flex flex-column">
 
-<form asp-action="Index" method="get">
-    <input type="text" name="searchByBrand" placeholder="Search by Brand" value="@ViewContext.HttpContext.Request.Query["searchByBrand"]" />
-    <input type="text" name="searchByModel" placeholder="Search by Model" value="@ViewContext.HttpContext.Request.Query["searchByModel"]" />
-    <button class="btn btn-primary" type="submit">Search</button>
-</form>
+    <div class="text-center my-4">
+        <h2 class="mt-2">Product List</h2>
+    </div>
 
-<table class="table table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Brand</th>
-            <th>Model</th>
-            <th>Category</th>
-            <th>Quantity</th>
-            <th>Delivery Price</th>
-            <th>Price</th>
-            <th>Row</th>
-            <th>Section</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var product in Model)
-        {
-            <tr>
-                <td>@product.ProductID</td>
-                <td>@product.Brand</td>
-                <td>@product.Model</td>
-                <td>@product.Category?.Name</td>
-                <td>@product.Quantity</td>
-                <td>@product.DeliveryPrice.ToString("C")</td>
-                <td>@product.Price.ToString("C")</td>
-                <td>@product.Row</td>
-                <td>@product.Section</td>
-                <td>
-                    <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@product.ProductID">Edit</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <div class="container">
+        <!-- Search Bar and Add Button Row -->
+        <div class="row mb-3">
+            <div class="col-md-9">
+                <form asp-action="Index" method="get" class="d-flex">
+                    <input type="text" name="searchByBrand" class="form-control me-2" placeholder="Search by Brand" value="@ViewContext.HttpContext.Request.Query["searchByBrand"]" />
+                    <input type="text" name="searchByModel" class="form-control me-2" placeholder="Search by Model" value="@ViewContext.HttpContext.Request.Query["searchByModel"]" />
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </form>
+            </div>
+            <div class="col-md-3 text-end">
+                <a class="btn btn-success" asp-action="Create">Add New Product</a>
+            </div>
+        </div>
+
+        <!-- Product Table -->
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Delivery Price</th>
+                    <th>Price</th>
+                    <th>Row</th>
+                    <th>Section</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var product in Model)
+                    {
+                        <tr>
+                            <td>@product.ProductID</td>
+                            <td>@product.Brand</td>
+                            <td>@product.Model</td>
+                            <td>@product.Category?.Name</td>
+                            <td>@product.Quantity</td>
+                            <td>@product.DeliveryPrice.ToString("C")</td>
+                            <td>@product.Price.ToString("C")</td>
+                            <td>@product.Row</td>
+                            <td>@product.Section</td>
+                            <td>
+                                <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@product.ProductID">Edit</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="10" class="text-center">No products found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+</div>

@@ -10,6 +10,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, String>
     {
     }
 
+
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Worker> Workers { get; set; }

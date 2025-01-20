@@ -1,6 +1,6 @@
 ﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.Models.ProductViewModel
 
-<div class="container mt-5">
+<div class="container mt-2">
     <div class="card" style="max-width: 500px; margin: auto;">
         <div class="card-body">
             <h4 class="card-title text-center mb-4">Add New Product</h4>
@@ -8,38 +8,119 @@
                 <div class="mb-3">
                     <label asp-for="Product.Brand" class="form-label">Brand</label>
                     <input asp-for="Product.Brand" class="form-control" />
+                    <span asp-validation-for="Product.Brand" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
                     <label asp-for="Product.Model" class="form-label">Model</label>
                     <input asp-for="Product.Model" class="form-control" />
+                    <span asp-validation-for="Product.Model" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
                     <label asp-for="Product.CategoryID" class="form-label">Category</label>
-                    <select asp-for="Product.CategoryID" class="form-select" asp-items="Model.Categories"></select>
+                    <div class="d-flex align-items-center">
+                        <select asp-for="Product.CategoryID" class="form-select me-2" asp-items="Model.Categories"></select>
+                        <button type="button" id="openCreateCategoryModal" class="btn btn-secondary btn-sm text-nowrap equal-height-button">
+                            New Category
+                        </button>
+                    </div>
                     <span asp-validation-for="Product.CategoryID" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
                     <label asp-for="Product.Quantity" class="form-label">Quantity</label>
                     <input asp-for="Product.Quantity" class="form-control" />
+                    <span asp-validation-for="Product.Quantity" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
                     <label asp-for="Product.Price" class="form-label">Price</label>
                     <input asp-for="Product.Price" class="form-control" />
+                    <span asp-validation-for="Product.Price" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
                     <label asp-for="Product.DeliveryPrice" class="form-label">Delivery Price</label>
                     <input asp-for="Product.DeliveryPrice" class="form-control" />
+                    <span asp-validation-for="Product.DeliveryPrice" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
                     <label asp-for="Product.Row" class="form-label">Row</label>
                     <input asp-for="Product.Row" class="form-control" />
+                    <span asp-validation-for="Product.Row" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
                     <label asp-for="Product.Section" class="form-label">Section</label>
                     <input asp-for="Product.Section" class="form-control" />
+                    <span asp-validation-for="Product.Section" class="text-danger"></span>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Save</button>
+                <button type="submit" class="btn btn-primary w-100">Add Product</button>
             </form>
         </div>
     </div>
 </div>
+
+
+<!-- Create Category Modal -->
+<div id="createCategoryModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Category</h5>
+            </div>
+            <div class="modal-body">
+                <form id="createCategoryForm">
+                    <div class="form-group">
+                        <label for="categoryName">Category Name</label>
+                        <input type="text" class="form-control" id="categoryName" name="categoryName" required />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="saveCategoryBtn" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add the fetch logic at the bottom of the file -->
+<script>
+    document.getElementById('openCreateCategoryModal').addEventListener('click', function () {
+        const modal = new bootstrap.Modal(document.getElementById('createCategoryModal'));
+        modal.show();
+    });
+
+    document.getElementById('saveCategoryBtn').addEventListener('click', function () {
+        const categoryName = document.getElementById('categoryName').value;
+
+        if (categoryName.trim() === '') {
+            alert('Please enter a category name.');
+            return;
+        }
+
+        fetch('/Category/Create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: categoryName }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    return response.text().then((text) => {
+                        throw new Error(text || 'Unknown error');
+                    });
+                }
+                return response.json();
+            })
+            .then((data) => {
+                alert(data.message);
+                location.reload(); // Optionally reload the page
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert(`Failed to create category: ${error.message}`);
+            });
+    });
+
+</script>
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
