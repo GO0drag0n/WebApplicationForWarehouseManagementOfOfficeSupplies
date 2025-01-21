@@ -70,7 +70,6 @@
         <div class="col-md-6">
             @if (Model.IsCompanyOwner)
             {
-                <!-- Company Owner Section -->
                 <div class="p-3 border rounded bg-light">
                     <h4>Manage Your Company</h4>
                     <p><strong>Company Name:</strong> @Model.CompanyName</p>
@@ -80,9 +79,17 @@
                     <a asp-controller="Company" asp-action="Leave" asp-route-id="@Model.CompanyId" class="btn btn-danger w-100">Leave Company</a>
                 </div>
             }
+            else if (Model.IsCompanyWorker)
+            {
+                <div class="p-3 border rounded bg-light">
+                    <h4>Your Company</h4>
+                    <p><strong>Company Name:</strong> @Model.CompanyName</p>
+                    <hr />
+                    <a asp-controller="Company" asp-action="Leave" asp-route-id="@Model.CompanyId" class="btn btn-danger w-100">Leave Company</a>
+                </div>
+            }
             else
             {
-                <!-- Join or Create Company Section -->
                 <form asp-action="JoinCompany" method="post" class="p-3 border rounded bg-light">
                     <h4>Join or Create a Company Client</h4>
                     <div class="form-group">

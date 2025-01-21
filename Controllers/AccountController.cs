@@ -90,7 +90,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         [HttpGet]
         public async Task<IActionResult> Manage()
         {
-            // Get the currently logged-in user
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
@@ -98,16 +97,17 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Check if the user is a company owner
             var isCompanyOwner = await _userManager.IsInRoleAsync(user, "Company Owner");
+            var isCompanyWorker = await _userManager.IsInRoleAsync(user, "Company Worker");
 
             string companyName = null;
             Guid companyId = Guid.Empty;
 
-            if (isCompanyOwner)
+            if (isCompanyOwner || isCompanyWorker)
             {
-                // Retrieve the company details
-                var company = await _context.Companies.FirstOrDefaultAsync(c => c.OwnerId == user.Id);
+                var company = await _context.Companies
+                    .FirstOrDefaultAsync(c => c.OwnerId == user.Id || c.UserCompanies.Any(uc => uc.UserId == user.Id));
+
                 if (company != null)
                 {
                     companyName = company.CompanyName;
@@ -115,19 +115,20 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 }
             }
 
-            // Create the view model
             var model = new ManageAccountViewModel
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
                 IsCompanyOwner = isCompanyOwner,
+                IsCompanyWorker = isCompanyWorker,
                 CompanyName = companyName,
                 CompanyId = companyId
             };
 
             return View(model);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -203,6 +204,63 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             return Json(new { CompanyName = company.CompanyName, CompanyId = company.CompanyId });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> JoinCompany(string companyCode)
+        {
+            if (string.IsNullOrWhiteSpace(companyCode))
+            {
+                TempData["ErrorMessage"] = "Company code is required.";
+                return RedirectToAction("Manage");
+            }
+
+            // Get the currently logged-in user
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "User not found. Please log in again.";
+                return RedirectToAction("Login");
+            }
+
+            // Validate the company code
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.CompanyId.ToString() == companyCode);
+            if (company == null)
+            {
+                TempData["ErrorMessage"] = "Invalid company code.";
+                return RedirectToAction("Manage");
+            }
+
+            // Check if the user is already a member of this company
+            var existingMembership = await _context.UserCompanies
+                .AnyAsync(uc => uc.UserId == user.Id && uc.CompanyId == company.CompanyId);
+
+            if (existingMembership)
+            {
+                TempData["ErrorMessage"] = "You are already a member of this company.";
+                return RedirectToAction("Manage");
+            }
+
+            // Add the user as a worker to the company
+            var userCompany = new UserCompany
+            {
+                UserId = user.Id,
+                CompanyId = company.CompanyId
+            };
+            _context.UserCompanies.Add(userCompany);
+
+            // Add user to the "Company Worker" role
+            if (!await _userManager.IsInRoleAsync(user, "Company Worker"))
+            {
+                await _userManager.AddToRoleAsync(user, "Company Worker");
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"You have successfully joined the company: {company.CompanyName}.";
+            return RedirectToAction("Manage");
+        }
+
 
 
 

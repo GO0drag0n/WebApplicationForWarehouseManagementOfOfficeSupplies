@@ -29,6 +29,8 @@ public class ManageAccountViewModel
     public string ConfirmPassword { get; set; }
 
     public bool IsCompanyOwner { get; set; } // Indicates if the user is a company owner
+    public bool IsCompanyWorker { get; set; }
+
     public string CompanyName { get; set; } // The name of the company
     public Guid CompanyId { get; set; } // The ID of the company
 }
