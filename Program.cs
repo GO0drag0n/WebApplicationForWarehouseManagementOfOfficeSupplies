@@ -13,6 +13,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<DbInitializer>();
+
 // Add Identity
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -28,6 +30,14 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // Build the app
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
+    var seed = services.GetRequiredService<DbInitializer>();
+    seed.Seed().Wait();
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

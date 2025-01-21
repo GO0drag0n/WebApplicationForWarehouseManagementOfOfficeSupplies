@@ -83,12 +83,7 @@ public class ApplicationDbContext : IdentityDbContext<User>
             .WithMany()
             .HasForeignKey(al => al.UserID);
 
-        modelBuilder.Entity<Category>().HasData(
-       new Category { CategoryID = 1, Name = "Electronics" },
-       new Category { CategoryID = 2, Name = "Furniture" },
-       new Category { CategoryID = 3, Name = "Stationery" },
-       new Category { CategoryID = 4, Name = "Office Supplies" }
-       );
+
 
     }
 
