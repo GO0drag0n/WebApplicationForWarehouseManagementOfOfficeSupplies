@@ -4,9 +4,11 @@ using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 {
+    [Authorize(Roles = "Admin,Storage Worker")]
     public class ProductController : Controller
     {
         private readonly ApplicationDbContext _context;

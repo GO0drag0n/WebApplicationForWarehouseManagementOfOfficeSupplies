@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.Data;
 using System.Threading.Tasks;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
 
@@ -9,12 +11,14 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data
         private readonly ApplicationDbContext _Context;
         private readonly UserManager<User> _UserManager;
         private readonly RoleManager<IdentityRole> _RoleManager;
+        private readonly IUserStore<User> _UserStore;
 
-        public DbInitializer(ApplicationDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        public DbInitializer(ApplicationDbContext context, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IUserStore<User> userStore)
         {
             _Context = context;
             _UserManager = userManager;
             _RoleManager = roleManager;
+            _UserStore = userStore;
         }
 
         public async Task Seed()
@@ -46,6 +50,23 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data
                     _Context.Categories.Add(category);
                 }
             }
+
+            if(!_Context.Users.Any())
+            {
+                User admin = new User();
+
+                admin.LastName = "Admin";
+                admin.FirstName = "Admin";
+                await _UserStore.SetUserNameAsync(admin, "admin@gmail.com", default);
+                await ((IUserEmailStore<User>)_UserStore).SetEmailAsync(admin, "admin@gmail.com", default);
+                await ((IUserEmailStore<User>)_UserStore).SetEmailConfirmedAsync(admin, true, default);
+                await _UserManager.CreateAsync(admin, "Pr0toty1pe@1");
+                await _UserManager.AddToRoleAsync(admin, "admin");
+            }
+
+           
+            
+
 
             await _Context.SaveChangesAsync();
         }
