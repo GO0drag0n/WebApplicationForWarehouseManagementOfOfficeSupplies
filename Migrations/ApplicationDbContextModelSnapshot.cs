@@ -241,47 +241,36 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.HasKey("CategoryID");
 
                     b.ToTable("Categories");
-
-                    b.HasData(
-                        new
-                        {
-                            CategoryID = 1,
-                            Name = "Electronics",
-                            UniqueNumber = new Guid("8bd41cb8-362a-4ea3-abff-9618a6fcf981")
-                        },
-                        new
-                        {
-                            CategoryID = 2,
-                            Name = "Furniture",
-                            UniqueNumber = new Guid("37b7ae20-ec99-47a2-acf9-b52fbada4a40")
-                        },
-                        new
-                        {
-                            CategoryID = 3,
-                            Name = "Stationery",
-                            UniqueNumber = new Guid("259fb895-b1fd-4205-9236-4893719ca721")
-                        },
-                        new
-                        {
-                            CategoryID = 4,
-                            Name = "Office Supplies",
-                            UniqueNumber = new Guid("2dc987b8-4c32-456d-a577-801548ef617b")
-                        });
                 });
 
             modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Company", b =>
                 {
-                    b.Property<int>("CompanyID")
+                    b.Property<Guid>("CompanyId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompanyID"));
+                    b.Property<string>("CompanyAddress")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("CompanyName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("CompanyID");
+                    b.Property<string>("CompanyPhone")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("CompanyId");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Companies");
                 });
@@ -491,15 +480,24 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 
             modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.UserCompany", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("CompanyId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.HasKey("UserId", "CompanyId");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserCompanies");
                 });
@@ -620,6 +618,17 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Company", b =>
+                {
+                    b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Product", b =>
                 {
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Category", "Category")
@@ -674,7 +683,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Company", "Company")
                         .WithMany("UserCompanies")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.User", "User")

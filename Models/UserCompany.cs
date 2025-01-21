@@ -5,15 +5,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
 {
     public class UserCompany
     {
-
-        [Required]
-        [ForeignKey(nameof(User))]
+        public int Id { get; set; }
         public string UserId { get; set; }
-        public User User { get; set; }
+        public virtual User User { get; set; }
 
-        [Required]
-        [ForeignKey(nameof(Company))]
-        public int CompanyId { get; set; }
-        public Company Company { get; set; }
+        public Guid CompanyId { get; set; } // Change from int to Guid
+        public virtual Company Company { get; set; }
     }
 }

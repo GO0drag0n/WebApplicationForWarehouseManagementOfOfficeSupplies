@@ -68,19 +68,101 @@
         </div>
 
         <div class="col-md-6">
-            <form asp-action="JoinCompany" method="post" class="p-3 border rounded bg-light">
-                <h4>Join a Company</h4>
-
-                <div class="form-group">
-                    <label @* asp-for="CompanyCode" *@ class="form-label">Enter the company code</label>
-                    <input @* asp-for="CompanyCode" *@ class="form-control" />
-                    <span @* asp-validation-for="CompanyCode" *@ class="text-danger"></span>
+            @if (Model.IsCompanyOwner)
+            {
+                <!-- Company Owner Section -->
+                <div class="p-3 border rounded bg-light">
+                    <h4>Manage Your Company</h4>
+                    <p><strong>Company Name:</strong> @Model.CompanyName</p>
+                    <hr />
+                    <a asp-controller="Company" asp-action="Manage" asp-route-id="@Model.CompanyId" class="btn btn-primary w-100 mb-2">Manage Company</a>
+                    <a id="inviteWorkerButton" data-company-id="@Model.CompanyId" class="btn btn-secondary w-100 mb-2">Invite Worker</a>
+                    <a asp-controller="Company" asp-action="Leave" asp-route-id="@Model.CompanyId" class="btn btn-danger w-100">Leave Company</a>
                 </div>
-
-                
-                <button type="submit" class="btn btn-primary w-100 mt-3">Join an existing Company Client</button>
-                <button type="submit" class="btn btn-primary w-100 mt-3">Create a Company Client</button>
-            </form>
+            }
+            else
+            {
+                <!-- Join or Create Company Section -->
+                <form asp-action="JoinCompany" method="post" class="p-3 border rounded bg-light">
+                    <h4>Join or Create a Company Client</h4>
+                    <div class="form-group">
+                        <label class="form-label">Enter the company code</label>
+                        <input name="CompanyCode" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Join an existing Company Client</button>
+                    <a asp-controller="Company" asp-action="Create" class="btn btn-primary w-100 mt-3">Create a Company Client</a>
+                </form>
+            }
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="inviteWorkerModal" tabindex="-1" aria-labelledby="inviteWorkerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inviteWorkerModalLabel">Company Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="companyCodeMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="copyCompanyCodeButton" class="btn btn-primary">Copy Code</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const inviteWorkerButton = document.getElementById('inviteWorkerButton');
+        const modalBody = document.getElementById('companyCodeMessage');
+        const modal = new bootstrap.Modal(document.getElementById('inviteWorkerModal'));
+        const copyButton = document.getElementById('copyCompanyCodeButton');
+
+        let currentCompanyCode = ''; // To store the company code for copying
+
+        inviteWorkerButton.addEventListener('click', function () {
+            const companyId = inviteWorkerButton.getAttribute('data-company-id');
+
+            console.log(`Fetching company code for ID: ${companyId}`); // Debugging output
+
+            fetch(`/Account/GetCompanyCode?companyId=${companyId}`)
+                .then(response => {
+                    console.log("Response Status:", response.status); // Log response status
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch company code. Status: ${response.status}`);
+                    }
+                    return response.json(); // Parse JSON response
+                })
+                .then(data => {
+                    console.log("Response Data:", data); // Debugging output
+                    // Improved formatting
+                    currentCompanyCode = data.companyId; // Save for copying
+                    modalBody.innerHTML = `The company code for "<strong>${data.companyName}</strong>" is:<br><strong>${data.companyId}</strong>`;
+                    modal.show();
+                })
+                .catch(error => {
+                    modalBody.textContent = "An error occurred while fetching the company code.";
+                    modal.show();
+                    console.error("Error fetching company code:", error); // Debugging output
+                });
+        });
+
+        copyButton.addEventListener('click', function () {
+            if (currentCompanyCode) {
+                navigator.clipboard.writeText(currentCompanyCode).then(() => {
+                    
+                }).catch(err => {
+                    alert('Failed to copy company code. Please try again.');
+                    console.error('Copy error:', err);
+                });
+            }
+        });
+    });
+
+
+
+</script>

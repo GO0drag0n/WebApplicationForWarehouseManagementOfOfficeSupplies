@@ -34,24 +34,20 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data
                 }
             }
 
-            // Seed categories
-            var categories = new[]
+            if (!_Context.Categories.Any())
             {
-                new Category { CategoryID = 1, Name = "Electronics" },
-                new Category { CategoryID = 2, Name = "Furniture" },
-                new Category { CategoryID = 3, Name = "Stationery" },
-                new Category { CategoryID = 4, Name = "Office Supplies" }
-            };
-
-            foreach (var category in categories)
-            {
-                if (!_Context.Categories.Any(c => c.CategoryID == category.CategoryID))
+                var categories = new[]
                 {
-                    _Context.Categories.Add(category);
-                }
+                    new Category { Name = "Electronics" },
+                    new Category { Name = "Furniture" },
+                    new Category { Name = "Stationery" },
+                    new Category { Name = "Office Supplies" }
+                };
+
+                _Context.Categories.AddRange(categories);
             }
 
-            if(!_Context.Users.Any())
+            if (!_Context.Users.Any())
             {
                 User admin = new User();
 

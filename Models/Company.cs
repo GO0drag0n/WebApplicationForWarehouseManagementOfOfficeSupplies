@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection.Metadata;
 
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
@@ -7,11 +8,21 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
     public class Company
     {
         [Key]
-        public int CompanyID { get; set; }
+        public Guid CompanyId { get; set; }
 
+        [Required]
+        [StringLength(100)]
         public string CompanyName { get; set; }
-
-        // Navigation property for the many-to-many relationship
+        [Required]
+        [StringLength(100)]
+        public string CompanyAddress { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string CompanyPhone { get; set; }
+        [Required]
+        public string OwnerId { get; set; }
+        [ForeignKey("OwnerId")]
+        public virtual User Owner { get; set; }
         public ICollection<UserCompany> UserCompanies { get; set; }
     }
 }

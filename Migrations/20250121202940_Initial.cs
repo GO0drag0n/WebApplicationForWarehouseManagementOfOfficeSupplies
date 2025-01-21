@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 {
     /// <inheritdoc />
@@ -66,19 +64,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.CategoryID);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Companies",
-                columns: table => new
-                {
-                    CompanyID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CompanyName = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Companies", x => x.CompanyID);
                 });
 
             migrationBuilder.CreateTable(
@@ -243,13 +228,34 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Companies",
+                columns: table => new
+                {
+                    CompanyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CompanyName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CompanyAddress = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CompanyPhone = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Companies", x => x.CompanyId);
+                    table.ForeignKey(
+                        name: "FK_Companies_AspNetUsers_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Products",
                 columns: table => new
                 {
                     ProductID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Brand = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Model = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Brand = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Model = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CategoryID = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     UniqueNumber = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -303,12 +309,14 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 name: "UserCompanies",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CompanyId = table.Column<int>(type: "int", nullable: false)
+                    CompanyId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserCompanies", x => new { x.UserId, x.CompanyId });
+                    table.PrimaryKey("PK_UserCompanies", x => x.Id);
                     table.ForeignKey(
                         name: "FK_UserCompanies_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -319,8 +327,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         name: "FK_UserCompanies_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "CompanyID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CompanyId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -378,17 +386,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Categories",
-                columns: new[] { "CategoryID", "Name", "UniqueNumber" },
-                values: new object[,]
-                {
-                    { 1, "Electronics", new Guid("6c154f9f-a55a-448e-8f9d-092f8b72af43") },
-                    { 2, "Furniture", new Guid("606a3411-f6d6-43c2-9cba-73ec5a7fabce") },
-                    { 3, "Stationery", new Guid("60650d06-ce0b-4f9a-b392-fa99af4c7dca") },
-                    { 4, "Office Supplies", new Guid("f3192a6d-0f22-4646-94f0-7c919f03a1a2") }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_ActionsHistory_ProductID",
                 table: "ActionsHistory",
@@ -444,6 +441,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Companies_OwnerId",
+                table: "Companies",
+                column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryID",
                 table: "Products",
                 column: "CategoryID");
@@ -472,6 +474,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 name: "IX_UserCompanies_CompanyId",
                 table: "UserCompanies",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserCompanies_UserId",
+                table: "UserCompanies",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -523,10 +530,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 name: "Companies");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "AspNetUsers");
         }
     }
 }

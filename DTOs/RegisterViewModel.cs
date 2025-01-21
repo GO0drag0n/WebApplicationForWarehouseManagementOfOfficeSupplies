@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
+namespace WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs
 {
     public class RegisterViewModel
     {

@@ -2,6 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
 using System.Threading.Tasks;
+using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
+using Microsoft.EntityFrameworkCore;
+using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
+using System.Security.Claims;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 {
@@ -9,11 +13,13 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly ApplicationDbContext _context;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
         [HttpGet]
@@ -82,15 +88,42 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         }
 
         [HttpGet]
-        public IActionResult Manage()
+        public async Task<IActionResult> Manage()
         {
-            var user = _userManager.GetUserAsync(User).Result;
+            // Get the currently logged-in user
+            var user = await _userManager.GetUserAsync(User);
 
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Check if the user is a company owner
+            var isCompanyOwner = await _userManager.IsInRoleAsync(user, "Company Owner");
+
+            string companyName = null;
+            Guid companyId = Guid.Empty;
+
+            if (isCompanyOwner)
+            {
+                // Retrieve the company details
+                var company = await _context.Companies.FirstOrDefaultAsync(c => c.OwnerId == user.Id);
+                if (company != null)
+                {
+                    companyName = company.CompanyName;
+                    companyId = company.CompanyId;
+                }
+            }
+
+            // Create the view model
             var model = new ManageAccountViewModel
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Email = user.Email
+                Email = user.Email,
+                IsCompanyOwner = isCompanyOwner,
+                CompanyName = companyName,
+                CompanyId = companyId
             };
 
             return View(model);
@@ -150,6 +183,28 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             TempData["SuccessMessage"] = "Password changed successfully!";
             return RedirectToAction("Manage");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCompanyCode(Guid companyId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+            {
+                return BadRequest(new { message = "User is not authenticated." });
+            }
+
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.CompanyId == companyId && c.OwnerId == userId);
+
+            if (company == null)
+            {
+                return BadRequest(new { message = "Invalid company or unauthorized access." });
+            }
+
+            return Json(new { CompanyName = company.CompanyName, CompanyId = company.CompanyId });
+        }
+
+
 
     }
 }

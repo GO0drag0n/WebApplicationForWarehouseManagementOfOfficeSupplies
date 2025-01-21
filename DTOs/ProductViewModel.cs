@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
+namespace WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs
 {
     public class ProductViewModel
     {
