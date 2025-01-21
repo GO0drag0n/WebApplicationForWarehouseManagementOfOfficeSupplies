@@ -12,8 +12,8 @@ using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250114165938_Intital")]
-    partial class Intital
+    [Migration("20250120154155_Validation")]
+    partial class Validation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -244,6 +244,32 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.HasKey("CategoryID");
 
                     b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryID = 1,
+                            Name = "Electronics",
+                            UniqueNumber = new Guid("8bd41cb8-362a-4ea3-abff-9618a6fcf981")
+                        },
+                        new
+                        {
+                            CategoryID = 2,
+                            Name = "Furniture",
+                            UniqueNumber = new Guid("37b7ae20-ec99-47a2-acf9-b52fbada4a40")
+                        },
+                        new
+                        {
+                            CategoryID = 3,
+                            Name = "Stationery",
+                            UniqueNumber = new Guid("259fb895-b1fd-4205-9236-4893719ca721")
+                        },
+                        new
+                        {
+                            CategoryID = 4,
+                            Name = "Office Supplies",
+                            UniqueNumber = new Guid("2dc987b8-4c32-456d-a577-801548ef617b")
+                        });
                 });
 
             modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Company", b =>
@@ -273,7 +299,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 
                     b.Property<string>("Brand")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("CategoryID")
                         .HasColumnType("int");
@@ -283,7 +310,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 
                     b.Property<string>("Model")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -655,7 +683,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.User", "User")
                         .WithMany("UserCompanies")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Company");

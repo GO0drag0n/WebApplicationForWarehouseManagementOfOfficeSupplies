@@ -1,46 +1,40 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
 {
-    public class Product
+    public class ProductViewModel
     {
-        [Key]
-        public int ProductID { get; set; }
-
         [Required(ErrorMessage = "Brand is required.")]
         [StringLength(100, ErrorMessage = "Brand name cannot exceed 100 characters.")]
-        public string Brand { get; set; }
+        public string ProductBrand { get; set; }
 
         [Required(ErrorMessage = "Model is required.")]
         [StringLength(100, ErrorMessage = "Model name cannot exceed 100 characters.")]
-        public string Model { get; set; }
+        public string ProductModel { get; set; }
         [Required]
-        public int CategoryID { get; set; }
+        public int ProductCategoryID { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
-        public int Quantity { get; set; }
-
-        public Guid UniqueNumber { get; set; } = Guid.NewGuid();
+        public int ProductQuantity { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         [Range(0, double.MaxValue, ErrorMessage = "Delivery Price must be a positive value.")]
-        public decimal DeliveryPrice { get; set; }
+        public decimal ProductDeliveryPrice { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive value.")]
-        public decimal Price { get; set; }
+        public decimal ProductPrice { get; set; }
 
         [Required(ErrorMessage = "Row is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Row must be greater than 0.")]
-        public int Row { get; set; }
+        public int ProductRow { get; set; }
 
         [Required(ErrorMessage = "Section is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Section must be greater than 0.")]
-        public int Section { get; set; }
+        public int ProductSection { get; set; }
 
-        [ForeignKey("CategoryID")]
-        public Category Category { get; set; }
+        public List<SelectListItem> Categories { get; set; }
     }
 }

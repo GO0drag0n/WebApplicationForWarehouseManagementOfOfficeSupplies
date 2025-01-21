@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 {
     /// <inheritdoc />
-    public partial class Intital : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -312,7 +314,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserCompanies_Companies_CompanyId",
                         column: x => x.CompanyId,
@@ -374,6 +376,17 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         principalTable: "Requests",
                         principalColumn: "RequestID",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Categories",
+                columns: new[] { "CategoryID", "Name", "UniqueNumber" },
+                values: new object[,]
+                {
+                    { 1, "Electronics", new Guid("6c154f9f-a55a-448e-8f9d-092f8b72af43") },
+                    { 2, "Furniture", new Guid("606a3411-f6d6-43c2-9cba-73ec5a7fabce") },
+                    { 3, "Stationery", new Guid("60650d06-ce0b-4f9a-b392-fa99af4c7dca") },
+                    { 4, "Office Supplies", new Guid("f3192a6d-0f22-4646-94f0-7c919f03a1a2") }
                 });
 
             migrationBuilder.CreateIndex(

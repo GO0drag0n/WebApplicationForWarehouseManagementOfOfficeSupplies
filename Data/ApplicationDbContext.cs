@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
-public class ApplicationDbContext : IdentityDbContext<User, Role, String>
+public class ApplicationDbContext : IdentityDbContext<User>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -36,12 +36,12 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, String>
             entity.HasOne(uc => uc.User)
                   .WithMany(u => u.UserCompanies)
                   .HasForeignKey(uc => uc.UserId)
-                  .OnDelete(DeleteBehavior.Restrict);
+                  .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(uc => uc.Company)
                   .WithMany(c => c.UserCompanies)
                   .HasForeignKey(uc => uc.CompanyId)
-                  .OnDelete(DeleteBehavior.Restrict);
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Product Configuration

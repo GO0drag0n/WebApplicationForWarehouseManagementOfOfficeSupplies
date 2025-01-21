@@ -12,8 +12,8 @@ using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250119213711_FixCascades")]
-    partial class FixCascades
+    [Migration("20250120121726_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,33 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
@@ -105,20 +132,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.Property<string>("RoleId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(34)
-                        .HasColumnType("nvarchar(34)");
-
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("IdentityUserRole<string>");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -232,25 +250,25 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         {
                             CategoryID = 1,
                             Name = "Electronics",
-                            UniqueNumber = new Guid("f216f93d-e8a5-4e9f-a5b1-d9ecc2627b43")
+                            UniqueNumber = new Guid("6c154f9f-a55a-448e-8f9d-092f8b72af43")
                         },
                         new
                         {
                             CategoryID = 2,
                             Name = "Furniture",
-                            UniqueNumber = new Guid("a78bfec9-f45d-48c1-ae44-4483b0423c0f")
+                            UniqueNumber = new Guid("606a3411-f6d6-43c2-9cba-73ec5a7fabce")
                         },
                         new
                         {
                             CategoryID = 3,
                             Name = "Stationery",
-                            UniqueNumber = new Guid("7d76af45-3e84-4da2-8f56-a1234c571038")
+                            UniqueNumber = new Guid("60650d06-ce0b-4f9a-b392-fa99af4c7dca")
                         },
                         new
                         {
                             CategoryID = 4,
                             Name = "Office Supplies",
-                            UniqueNumber = new Guid("49b93ef8-ccd8-4b98-90d5-dc7221a2a019")
+                            UniqueNumber = new Guid("f3192a6d-0f22-4646-94f0-7c919f03a1a2")
                         });
                 });
 
@@ -376,33 +394,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("RequestHistories");
-                });
-
-            modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Role", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex")
-                        .HasFilter("[NormalizedName] IS NOT NULL");
-
-                    b.ToTable("AspNetRoles", (string)null);
                 });
 
             modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Setting", b =>
@@ -549,28 +540,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.ToTable("Workers");
                 });
 
-            modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.UserRole", b =>
-                {
-                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUserRole<string>");
-
-                    b.Property<string>("RoleId1")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UserId1")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasIndex("RoleId1");
-
-                    b.HasIndex("UserId1");
-
-                    b.HasDiscriminator().HasValue("UserRole");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
-                    b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Role", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -597,7 +569,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
-                    b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Role", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -703,35 +675,16 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Company", "Company")
                         .WithMany("UserCompanies")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.User", "User")
                         .WithMany("UserCompanies")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Company");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.UserRole", b =>
-                {
-                    b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Role", "Role")
-                        .WithMany("UserRoles")
-                        .HasForeignKey("RoleId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Role");
 
                     b.Navigation("User");
                 });
@@ -744,11 +697,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
             modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Request", b =>
                 {
                     b.Navigation("RequestHistories");
-                });
-
-            modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Role", b =>
-                {
-                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.User", b =>

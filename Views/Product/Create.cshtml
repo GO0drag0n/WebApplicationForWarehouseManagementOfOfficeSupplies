@@ -4,51 +4,52 @@
     <div class="card" style="max-width: 500px; margin: auto;">
         <div class="card-body">
             <h4 class="card-title text-center mb-4">Add New Product</h4>
-            <form asp-action="Create" method="post">
+            <form asp-controller="Product" asp-action="Create" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
                 <div class="mb-3">
-                    <label asp-for="Product.Brand" class="form-label">Brand</label>
-                    <input asp-for="Product.Brand" class="form-control" />
-                    <span asp-validation-for="Product.Brand" class="text-danger"></span>
+                    <label asp-for="ProductBrand" class="form-label"></label>
+                    <input asp-for="ProductBrand" class="form-control" />
+                    <span asp-validation-for="ProductBrand" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Product.Model" class="form-label">Model</label>
-                    <input asp-for="Product.Model" class="form-control" />
-                    <span asp-validation-for="Product.Model" class="text-danger"></span>
+                    <label asp-for="ProductModel" class="form-label"></label>
+                    <input asp-for="ProductModel" class="form-control" />
+                    <span asp-validation-for="ProductModel" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Product.CategoryID" class="form-label">Category</label>
+                    <label asp-for="ProductCategoryID" class="form-label"></label>
                     <div class="d-flex align-items-center">
-                        <select asp-for="Product.CategoryID" class="form-select me-2" asp-items="Model.Categories"></select>
+                        <select asp-for="ProductCategoryID" class="form-select me-2" asp-items="Model.Categories"></select>
                         <button type="button" id="openCreateCategoryModal" class="btn btn-secondary btn-sm text-nowrap equal-height-button">
                             New Category
                         </button>
                     </div>
-                    <span asp-validation-for="Product.CategoryID" class="text-danger"></span>
+                    <span asp-validation-for="ProductCategoryID" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Product.Quantity" class="form-label">Quantity</label>
-                    <input asp-for="Product.Quantity" class="form-control" />
-                    <span asp-validation-for="Product.Quantity" class="text-danger"></span>
+                    <label asp-for="ProductQuantity" class="form-label"></label>
+                    <input asp-for="ProductQuantity" class="form-control" />
+                    <span asp-validation-for="ProductQuantity" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Product.Price" class="form-label">Price</label>
-                    <input asp-for="Product.Price" class="form-control" />
-                    <span asp-validation-for="Product.Price" class="text-danger"></span>
+                    <label asp-for="ProductPrice" class="form-label"></label>
+                    <input asp-for="ProductPrice" class="form-control" />
+                    <span asp-validation-for="ProductPrice" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Product.DeliveryPrice" class="form-label">Delivery Price</label>
-                    <input asp-for="Product.DeliveryPrice" class="form-control" />
-                    <span asp-validation-for="Product.DeliveryPrice" class="text-danger"></span>
+                    <label asp-for="ProductDeliveryPrice" class="form-label"></label>
+                    <input asp-for="ProductDeliveryPrice" class="form-control" />
+                    <span asp-validation-for="ProductDeliveryPrice" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Product.Row" class="form-label">Row</label>
-                    <input asp-for="Product.Row" class="form-control" />
-                    <span asp-validation-for="Product.Row" class="text-danger"></span>
+                    <label asp-for="ProductRow" class="form-label"></label>
+                    <input asp-for="ProductRow" class="form-control" />
+                    <span asp-validation-for="ProductRow" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="Product.Section" class="form-label">Section</label>
-                    <input asp-for="Product.Section" class="form-control" />
-                    <span asp-validation-for="Product.Section" class="text-danger"></span>
+                    <label asp-for="ProductSection" class="form-label"></label>
+                    <input asp-for="ProductSection" class="form-control" />
+                    <span asp-validation-for="ProductSection" class="text-danger"></span>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Add Product</button>
             </form>
@@ -56,13 +57,13 @@
     </div>
 </div>
 
-
 <!-- Create Category Modal -->
-<div id="createCategoryModal" class="modal" tabindex="-1" role="dialog">
+<div id="createCategoryModal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Create New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="createCategoryForm">
@@ -80,7 +81,7 @@
     </div>
 </div>
 
-<!-- Add the fetch logic at the bottom of the file -->
+<!-- Scripts -->
 <script>
     document.getElementById('openCreateCategoryModal').addEventListener('click', function () {
         const modal = new bootstrap.Modal(document.getElementById('createCategoryModal'));
@@ -99,6 +100,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
             },
             body: JSON.stringify({ name: categoryName }),
         })
@@ -119,7 +121,6 @@
                 alert(`Failed to create category: ${error.message}`);
             });
     });
-
 </script>
 
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css">

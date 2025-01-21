@@ -22,11 +22,12 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(products);
         }
 
+        [HttpGet]
         public IActionResult Create()
         {
             var model = new ProductViewModel
             {
-                Product = new Product(), // Initialize an empty Product object
+                ProductBrand = "chep",
                 Categories = _context.Categories.Select(c => new SelectListItem
                 {
                     Value = c.CategoryID.ToString(),
@@ -39,36 +40,58 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(ProductViewModel model)
+        public IActionResult Create(CreateProductViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                // Reload categories if validation fails
-                model.Categories = _context.Categories.Select(c => new SelectListItem
+                var viewModel = new ProductViewModel
                 {
-                    Value = c.CategoryID.ToString(),
-                    Text = c.Name
-                }).ToList();
-            }
-                var product = new Product
-                {
-                    Brand = model.Product.Brand,
-                    Model = model.Product.Model,
-                    CategoryID = model.Product.CategoryID,
-                    Quantity = model.Product.Quantity,
-                    DeliveryPrice = model.Product.DeliveryPrice,
-                    Price = model.Product.Price,
-                    Row = model.Product.Row,
-                    Section = model.Product.Section,
-                    UniqueNumber = Guid.NewGuid()
+                    Categories = _context.Categories.Select(c => new SelectListItem
+                    {
+                        Value = c.CategoryID.ToString(),
+                        Text = c.Name
+                    }).ToList()
                 };
 
-                _context.Products.Add(product);
-                _context.SaveChanges();
-
-                return RedirectToAction("Index");
+                return View(viewModel);
             }
-        
 
+            var product = new Product
+            {
+                Brand = model.ProductBrand,
+                Model = model.ProductModel,
+                CategoryID = model.ProductCategoryID,
+                Quantity = model.ProductQuantity,
+                DeliveryPrice = model.ProductDeliveryPrice,
+                Price = model.ProductPrice,
+                Row = model.ProductRow,
+                Section = model.ProductSection,
+                UniqueNumber = Guid.NewGuid()
+            };
+
+            _context.Products.Add(product);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public IActionResult Index(string? searchByBrand, string? searchByModel)
+        {
+            var query = _context.Products.Include(p => p.Category).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchByBrand))
+            {
+                query = query.Where(p => EF.Functions.Like(p.Brand, $"%{searchByBrand}%"));
+            }
+
+            if (!string.IsNullOrEmpty(searchByModel))
+            {
+                query = query.Where(p => EF.Functions.Like(p.Model, $"%{searchByModel}%"));
+            }
+
+            var products = query.ToList();
+            return View(products);
+        }
     }
 }
