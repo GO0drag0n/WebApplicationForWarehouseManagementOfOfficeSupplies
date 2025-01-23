@@ -17,6 +17,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data
         public DbSet<Worker> Workers { get; set; }
         public DbSet<ActionHistory> ActionsHistory { get; set; }
         public DbSet<Request> Requests { get; set; }
+        public DbSet<RequestProduct> RequestProducts { get; set; } // For many-to-many relationship
         public DbSet<RequestHistory> RequestHistories { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Setting> Settings { get; set; }
@@ -74,6 +75,21 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Data
                 .WithMany()
                 .HasForeignKey(r => r.UserID);
 
+            // RequestProduct Configuration
+            modelBuilder.Entity<RequestProduct>()
+                .HasKey(rp => new { rp.RequestID, rp.ProductID }); // Composite primary key
+
+            modelBuilder.Entity<RequestProduct>()
+                .HasOne(rp => rp.Request)
+                .WithMany(r => r.RequestProducts)
+                .HasForeignKey(rp => rp.RequestID);
+
+            modelBuilder.Entity<RequestProduct>()
+                .HasOne(rp => rp.Product)
+                .WithMany(p => p.RequestProducts)
+                .HasForeignKey(rp => rp.ProductID);
+
+            // RequestHistory Configuration
             modelBuilder.Entity<RequestHistory>()
                 .HasOne(rh => rh.Request)
                 .WithMany(r => r.RequestHistories)

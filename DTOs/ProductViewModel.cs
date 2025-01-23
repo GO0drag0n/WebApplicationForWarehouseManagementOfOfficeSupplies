@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs
 {
     public class ProductViewModel
     {
+        public int ProductID { get; set; }
+
         [Required(ErrorMessage = "Brand is required.")]
         [StringLength(100, ErrorMessage = "Brand name cannot exceed 100 characters.")]
         public string ProductBrand { get; set; }
@@ -13,10 +16,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs
         [Required(ErrorMessage = "Model is required.")]
         [StringLength(100, ErrorMessage = "Model name cannot exceed 100 characters.")]
         public string ProductModel { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Category ID is required.")]
         public int ProductCategoryID { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
+        [Range(0, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
         public int ProductQuantity { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
@@ -35,6 +39,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "Section must be greater than 0.")]
         public int ProductSection { get; set; }
 
-        public List<SelectListItem> Categories { get; set; }
+        // Dropdown for category selection
+        public List<SelectListItem> Categories { get; set; } = new List<SelectListItem>();
     }
 }

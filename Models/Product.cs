@@ -19,7 +19,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
         [Required]
         public int CategoryID { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
+        [Range(0, int.MaxValue, ErrorMessage = "Quantity must be a non-negative value.")]
         public int Quantity { get; set; }
 
         public Guid UniqueNumber { get; set; } = Guid.NewGuid();
@@ -42,5 +42,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
 
         [ForeignKey("CategoryID")]
         public Category Category { get; set; }
+
+        [NotMapped]
+        public string FullName => $"{Brand} {Model}";
+
+        public ICollection<RequestProduct> RequestProducts { get; set; }
     }
 }

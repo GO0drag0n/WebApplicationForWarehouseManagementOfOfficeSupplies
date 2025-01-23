@@ -1,0 +1,75 @@
+﻿<div class="container my-4">
+    <h2 class="fw-bold text-center">Create Request</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    else if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+        </div>
+    }
+
+    <!-- Search Form -->
+    <form method="get" asp-action="Create" class="mb-4 d-flex justify-content-between">
+        <input type="text" name="searchTerm" placeholder="Search by Brand or Model" value="@Context.Request.Query["searchTerm"]" class="form-control me-2" />
+        <select name="categoryId" class="form-select me-2">
+            <option value="">All Categories</option>
+            @foreach (var category in Model.Categories)
+            {
+                if (Context.Request.Query["categoryId"] == category.Value)
+                {
+                    <option value="@category.Value" selected>@category.Text</option>
+                }
+                else
+                {
+                    <option value="@category.Value">@category.Text</option>
+                }
+            }
+        </select>
+
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+
+    <!-- Product Table -->
+    <form asp-action="Create" method="post" class="p-3 border rounded bg-light">
+        <h4>Products</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.RequestProducts.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Model.RequestProducts[i].ProductBrand
+                            <input type="hidden" name="RequestProducts[@i].ProductBrand" value="@Model.RequestProducts[i].ProductBrand" />
+                        </td>
+                        <td>
+                            @Model.RequestProducts[i].ProductModel
+                            <input type="hidden" name="RequestProducts[@i].ProductModel" value="@Model.RequestProducts[i].ProductModel" />
+                        </td>
+                        <td>
+                            @Model.RequestProducts[i].ProductPrice.ToString("C") <!-- Format as currency -->
+                            <input type="hidden" name="RequestProducts[@i].ProductPrice" value="@Model.RequestProducts[i].ProductPrice" />
+                        </td>
+                        <td>
+                            <input type="hidden" name="RequestProducts[@i].ProductID" value="@Model.RequestProducts[i].ProductID" />
+                            <input type="number" name="RequestProducts[@i].ProductQuantity" class="form-control" value="0" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-primary w-100 mt-3">Submit Request</button>
+    </form>
+</div>

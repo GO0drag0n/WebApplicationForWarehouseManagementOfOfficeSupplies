@@ -7,19 +7,20 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
     {
         [Key]
         public int RequestID { get; set; }
-        public int CategoryID { get; set; }
-        public string Brand { get; set; }
-        public string Model { get; set; }
-        public int Quantity { get; set; }
+
+        [Required]
         public string Status { get; set; } = "Pending";
+
+        [Required]
         public string UserID { get; set; }
-
-        public ICollection<RequestHistory> RequestHistories { get; set; }
-
-        [ForeignKey("CategoryID")]
-        public Category Category { get; set; }
 
         [ForeignKey("UserID")]
         public User User { get; set; }
+
+        // Navigation property for request history
+        public ICollection<RequestHistory> RequestHistories { get; set; }
+
+        // Navigation property for many-to-many relationship
+        public ICollection<RequestProduct> RequestProducts { get; set; }
     }
 }
