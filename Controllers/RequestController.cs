@@ -92,7 +92,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                         product.ProductDeliveryPrice = dbProduct.DeliveryPrice;
                     }
                 }
-                return View(model);
             }
 
             // Filter selected products based on quantity > 0
