@@ -7,10 +7,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 {
-    [Authorize(Roles = "Company Owner,Company Worker")]
+    [Authorize(Roles = "Company Owner, Company Worker")]
     public class RequestController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -29,17 +30,17 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             // Apply filtering for search term
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(p => p.Brand.Contains(searchTerm) || p.Model.Contains(searchTerm));
+                query = query.Include(x => x.RequestProducts).Include(x => x.Category).Where(p => p.Brand.Contains(searchTerm) || p.Model.Contains(searchTerm));
             }
 
             // Apply filtering for category ID
             if (categoryId.HasValue)
             {
-                query = query.Where(p => p.CategoryID == categoryId.Value);
+                query = query.Include(x => x.RequestProducts).Include(x => x.Category).Where(p => p.CategoryID == categoryId.Value);
             }
 
             // Execute the filtered query
-            var filteredProducts = query.ToList();
+            var filteredProducts = query.Include(x => x.RequestProducts).Include(x => x.Category).ToList();
 
             // Pass the products and categories to the view model
             var categories = _context.Categories
@@ -80,7 +81,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 // Reinitialize non-editable fields for redisplay
                 foreach (var product in model.RequestProducts)
                 {
-                    var dbProduct = _context.Products.FirstOrDefault(p => p.ProductID == product.ProductID);
+                    var dbProduct = _context.Products.Include(x => x.RequestProducts).FirstOrDefault(p => p.ProductID == product.ProductID);
                     if (dbProduct != null)
                     {
                         product.ProductBrand = dbProduct.Brand;
@@ -96,9 +97,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             // Filter selected products based on quantity > 0
             var selectedProducts = model.RequestProducts
-                .Where(p => p.ProductQuantity > 0) // Only include products with quantity > 0
+                .Where(p => p.ProductQuantity > 0)
                 .Select(p => new RequestProduct
                 {
+                    ProductBrand = p.ProductBrand,
+                    ProductModel = p.ProductModel,
                     ProductID = p.ProductID,
                     Quantity = p.ProductQuantity
                 })
@@ -111,6 +114,14 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return View(model);
             }
 
+            // Populate RequestProductBrand and RequestProductModel from the first selected product
+            var firstSelectedProduct = selectedProducts.FirstOrDefault();
+            if (firstSelectedProduct != null)
+            {
+                model.RequestProductBrand = firstSelectedProduct.ProductBrand;
+                model.RequestProductModel = firstSelectedProduct.ProductModel;
+            }
+
             // Get the logged-in user's ID
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -119,11 +130,22 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return View(model);
             }
 
+            // Fetch the company for the logged-in user
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.OwnerId == userId);
+            if (company == null)
+            {
+                ModelState.AddModelError(string.Empty, "No associated company found for the logged-in user.");
+                return View(model);
+            }
+
             // Create a new request
             var request = new Request
             {
                 UserID = userId,
                 Status = model.RequestStatus,
+                Brand = model.RequestProductBrand,
+                Model = model.RequestProductModel,
+                CompanyId = company.CompanyId, // Assign the valid CompanyId
                 RequestProducts = selectedProducts
             };
 
@@ -135,5 +157,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             TempData["SuccessMessage"] = "Request created successfully!";
             return RedirectToAction("Index", "Home");
         }
+
+
+
+
+
     }
 }

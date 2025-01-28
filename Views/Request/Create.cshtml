@@ -12,11 +12,13 @@
         </div>
     }
 
-    <!-- Search Form -->
     <form method="get" asp-action="Create" class="mb-4 d-flex justify-content-between">
         <input type="text" name="searchTerm" placeholder="Search by Brand or Model" value="@Context.Request.Query["searchTerm"]" class="form-control me-2" />
+
         <select name="categoryId" class="form-select me-2">
+
             <option value="">All Categories</option>
+
             @foreach (var category in Model.Categories)
             {
                 if (Context.Request.Query["categoryId"] == category.Value)
@@ -28,14 +30,16 @@
                     <option value="@category.Value">@category.Text</option>
                 }
             }
+
         </select>
 
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
 
-    <!-- Product Table -->
     <form asp-action="Create" method="post" class="p-3 border rounded bg-light">
+
         <h4>Products</h4>
+
         <table class="table">
             <thead>
                 <tr>
@@ -46,6 +50,7 @@
                 </tr>
             </thead>
             <tbody>
+
                 @for (int i = 0; i < Model.RequestProducts.Count; i++)
                 {
                     <tr>
@@ -58,16 +63,18 @@
                             <input type="hidden" name="RequestProducts[@i].ProductModel" value="@Model.RequestProducts[i].ProductModel" />
                         </td>
                         <td>
-                            @Model.RequestProducts[i].ProductPrice.ToString("C") <!-- Format as currency -->
+                            @Model.RequestProducts[i].ProductPrice.ToString("C")
                             <input type="hidden" name="RequestProducts[@i].ProductPrice" value="@Model.RequestProducts[i].ProductPrice" />
                         </td>
                         <td>
                             <input type="hidden" name="RequestProducts[@i].ProductID" value="@Model.RequestProducts[i].ProductID" />
-                            <input type="hidden" namw="RequestProducts[@i].ProductRow" value="@Model.RequestProducts[i].ProductRow"/>
+                            <input type="hidden" name="RequestProducts[@i].ProductRow" value="@Model.RequestProducts[i].ProductRow"/>
+                            <input type="hidden" name="RequestProducts[@i].ProductSection" value="@Model.RequestProducts[i].ProductSection"/>
                             <input type="number" name="RequestProducts[@i].ProductQuantity" class="form-control" value="0" />
                         </td>
                     </tr>
                 }
+
             </tbody>
         </table>
 

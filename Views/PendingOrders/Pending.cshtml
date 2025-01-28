@@ -1,0 +1,42 @@
+﻿@model IEnumerable<WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Request>
+
+<div class="d-flex flex-column" >
+    <h2 class="text-center">Pending Orders</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Request ID</th>
+                <th>Requested By</th>
+                <th>Products</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in Model)
+            {
+                <tr>
+                    <td>@request.RequestID</td>
+                    <td>@request.User.FirstName @request.User.LastName</td>
+                    <td>
+                        <ul>
+                            @foreach (var product in request.RequestProducts)
+                            {
+                                <li>@product.ProductBrand @product.ProductModel - Quantity: @product.Quantity pcs.</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>@request.Status</td>
+                    <td>
+                        <a asp-controller="PendingOrders" asp-action="Approve" asp-route-id="@request.RequestID" class="btn btn-success">Approve</a>
+                        <a asp-controller="PendingOrders" asp-action="Reject" asp-route-id="@request.RequestID" class="btn btn-danger">Reject</a>
+                        <a asp-controller="PendingOrders" asp-action="Details" asp-route-id="@request.RequestID" class="btn btn-info">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+

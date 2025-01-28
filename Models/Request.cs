@@ -14,8 +14,18 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
         [Required]
         public string UserID { get; set; }
 
+        public string Brand { get; set; }
+
+        public string Model { get; set; }
+
         [ForeignKey("UserID")]
         public User User { get; set; }
+
+        [Required]
+        public Guid CompanyId { get; set; }
+
+        [ForeignKey("CompanyId")]
+        public Company Company { get; set; }
 
         // Navigation property for request history
         public ICollection<RequestHistory> RequestHistories { get; set; }

@@ -1,0 +1,38 @@
+﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs.PendingOrdersDetailsViewModel
+
+<div class="container my-4">
+    <h2>Request Details</h2>
+    <div class="card">
+        <div class="card-body">
+            <h5>Request Information</h5>
+            <p><strong>Request ID:</strong> @Model.RequestID</p>
+            <p><strong>Status:</strong> @Model.Status</p>
+            <h5>Company Information</h5>
+            <p><strong>Company Name:</strong> @Model.CompanyName</p>
+            <p><strong>Address:</strong> @Model.CompanyAddress</p>
+            <p><strong>Phone:</strong> @Model.CompanyPhone</p>
+            <h5>User Information</h5>
+            <p><strong>User:</strong> @Model.UserName</p>
+        </div>
+    </div>
+    <h4>Products</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Brand</th>
+                <th>Model</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model.RequestProducts)
+            {
+                <tr>
+                    <td>@product.ProductBrand</td>
+                    <td>@product.ProductModel</td>
+                    <td>@product.ProductQuantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

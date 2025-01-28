@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 
@@ -11,9 +12,11 @@ using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250127113100_AddedPropertiesToRequest")]
+    partial class AddedPropertiesToRequest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -333,9 +336,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -349,8 +349,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("RequestID");
-
-                    b.HasIndex("CompanyId");
 
                     b.HasIndex("UserID");
 
@@ -665,19 +663,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Migrations
 
             modelBuilder.Entity("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Request", b =>
                 {
-                    b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("WebApplicationForWarehouseManagementOfOfficeSupplies.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Company");
 
                     b.Navigation("User");
                 });
