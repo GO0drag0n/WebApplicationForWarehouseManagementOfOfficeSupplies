@@ -29,9 +29,7 @@
                     </td>
                     <td>@request.Status</td>
                     <td>
-                        <a asp-controller="PendingOrders" asp-action="Approve" asp-route-id="@request.RequestID" class="btn btn-success">Approve</a>
-                        <a asp-controller="PendingOrders" asp-action="Reject" asp-route-id="@request.RequestID" class="btn btn-danger">Reject</a>
-                        <a asp-controller="PendingOrders" asp-action="Details" asp-route-id="@request.RequestID" class="btn btn-info">Details</a>
+                        <a asp-controller="PendingOrders" asp-action="Details" asp-route-id="@request.RequestID" class="btn btn-primary ">Details</a>
                     </td>
                 </tr>
             }

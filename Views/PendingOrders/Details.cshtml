@@ -14,6 +14,7 @@
             <p><strong>Requested by:</strong> @Model.UserName</p>
         </div>
     </div>
+
     <h4>Products</h4>
     <table class="table">
         <thead>
@@ -38,4 +39,29 @@
             }
         </tbody>
     </table>
+
+    <!-- Status Update Section -->
+    <h4>Update Order Status</h4>
+    <form method="post" asp-action="UpdateStatus" asp-controller="PendingOrders">
+        <input type="hidden" name="requestId" value="@Model.RequestID" />
+        <div class="form-group">
+            <label for="newStatus">Order Status</label>
+            <select id="newStatus" name="newStatus" class="form-control">
+                <option value="Pending" selected="@Model.Status == " Pending"">Pending</option>
+                <option value="Rejected" selected="@Model.Status == " Rejected"">Rejected</option>
+                <option value="Confirmed" selected="@Model.Status == " Confirmed"">Confirmed</option>
+                <option value="Sent" selected="@Model.Status == " Sent"">Sent</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Update Status</button>
+    </form>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mt-3 ">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mt-3 ">@TempData["ErrorMessage"]</div>
+    }
+
 </div>

@@ -8,7 +8,7 @@
         public string CompanyAddress { get; set; }
         public string CompanyPhone { get; set; }
         public string UserName { get; set; }
-
+        public string NewStatus { get; set; }
         public List<ProductViewModel> RequestProducts { get; set; }
 
     }

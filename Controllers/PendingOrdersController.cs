@@ -25,7 +25,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 .Include(r => r.User)
                 .Include(r => r.RequestProducts)
                 .ThenInclude(rp => rp.Product)
-                .Where(r => r.Status == "Pending")
+                .Where(r => r.Status != "Sent")
                 .ToList();
 
             return View(pendingRequests);
@@ -46,7 +46,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return NotFound(); // Handle case where the request is not found
             }
 
-            // Map data to the view model
+
             var viewModel = new PendingOrdersDetailsViewModel
             {
                 RequestID = request.RequestID,
@@ -68,6 +68,29 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             return View(viewModel);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(int requestId, string newStatus)
+        {
+            // Fetch the request
+            var request = await _context.Requests.FirstOrDefaultAsync(r => r.RequestID == requestId);
+            if (request == null)
+            {
+                return NotFound("Order not found.");
+            }
+
+            // Update the status
+            request.Status = newStatus;
+
+            // Save changes
+            _context.Requests.Update(request);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Order status updated to {newStatus}.";
+            return RedirectToAction(nameof(Details), new { id = requestId });
+        }
+
 
     }
 }
