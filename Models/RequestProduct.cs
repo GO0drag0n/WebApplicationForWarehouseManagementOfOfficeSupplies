@@ -15,6 +15,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
 
         public string ProductModel { get; set; }
 
+        public int ProductRow { get; set; }
+
+        public int ProductSection { get; set; }
+
         [ForeignKey("ProductID")]
         public Product Product { get; set; }
 

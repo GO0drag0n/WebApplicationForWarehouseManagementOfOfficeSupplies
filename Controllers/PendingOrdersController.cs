@@ -35,8 +35,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         {
             // Fetch the request with related data
             var request = await _context.Requests
-                .Include(r => r.Company) // Include related Company entity
-                .Include(r => r.RequestProducts) // Include related RequestProducts
+                .Include(r => r.Company)
+                .Include(r => r.RequestProducts)
+                .ThenInclude(rp => rp.Product)
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.RequestID == id);
 
@@ -59,7 +60,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     ProductID = p.ProductID,
                     ProductBrand = p.ProductBrand,
                     ProductModel = p.ProductModel,
-                    ProductQuantity = p.Quantity
+                    ProductQuantity = p.Quantity,
+                    ProductRow = p.ProductRow,
+                    ProductSection = p.ProductSection
                 }).ToList()
             };
 

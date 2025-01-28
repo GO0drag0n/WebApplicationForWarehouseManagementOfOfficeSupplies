@@ -103,7 +103,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     ProductBrand = p.ProductBrand,
                     ProductModel = p.ProductModel,
                     ProductID = p.ProductID,
-                    Quantity = p.ProductQuantity
+                    Quantity = p.ProductQuantity,
+                    ProductRow = p.ProductRow, 
+                    ProductSection = p.ProductSection
                 })
                 .ToList();
 
@@ -145,7 +147,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 Status = model.RequestStatus,
                 Brand = model.RequestProductBrand,
                 Model = model.RequestProductModel,
-                CompanyId = company.CompanyId, // Assign the valid CompanyId
+                CompanyId = company.CompanyId,
                 RequestProducts = selectedProducts
             };
 
