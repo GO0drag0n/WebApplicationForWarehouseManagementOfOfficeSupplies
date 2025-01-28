@@ -37,6 +37,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             var request = await _context.Requests
                 .Include(r => r.Company) // Include related Company entity
                 .Include(r => r.RequestProducts) // Include related RequestProducts
+                .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.RequestID == id);
 
             if (request == null)
@@ -52,6 +53,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 CompanyName = request.Company?.CompanyName, // Use null-safe navigation
                 CompanyAddress = request.Company?.CompanyAddress,
                 CompanyPhone = request.Company?.CompanyPhone,
+                UserName = request.User?.UserName,
                 RequestProducts = request.RequestProducts?.Select(p => new ProductViewModel
                 {
                     ProductID = p.ProductID,

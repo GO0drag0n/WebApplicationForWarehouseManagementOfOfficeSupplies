@@ -155,8 +155,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             // Provide feedback and redirect
             TempData["SuccessMessage"] = "Request created successfully!";
-            return RedirectToAction("Index", "Home");
+            return View(model);
         }
+
 
 
 
