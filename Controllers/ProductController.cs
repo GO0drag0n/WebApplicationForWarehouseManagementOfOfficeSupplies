@@ -30,7 +30,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         {
             var model = new ProductViewModel
             {
-                ProductBrand = "chep",
                 Categories = _context.Categories.Select(c => new SelectListItem
                 {
                     Value = c.CategoryID.ToString(),

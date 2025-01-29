@@ -1,7 +1,17 @@
 ﻿@model IEnumerable<WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Request>
 
-<div class="d-flex flex-column" >
-    <h2 class="text-center">Pending Orders</h2>
+<div class="container">
+    <h2 class="text-center">Pending Orders for Your Company</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
 
     <table class="table">
         <thead>
@@ -24,8 +34,7 @@
                         <ul>
                             @foreach (var product in request.RequestProducts)
                             {
-                                <li>@product.ProductBrand @product.ProductModel </li>
-                                
+                                <li>@product.ProductBrand @product.ProductModel</li>
                             }
                         </ul>
                     </td>
@@ -33,19 +42,17 @@
                         <ul>
                             @foreach (var product in request.RequestProducts)
                             {
-                                <li>@product.Quantity pcs.</li>
-
+                                <li> @product.Quantity pcs.</li>
                             }
                         </ul>
                     </td>
                     <td>@request.Status</td>
                     <td>
-                        <a asp-controller="PendingOrders" asp-action="Details" asp-route-id="@request.RequestID" class="btn btn-primary ">Details</a>
+                        <a asp-controller="PendingOrders" asp-action="CompanyOrderDetails" asp-route-id="@request.RequestID" class="btn btn-primary btn-sm">View</a>
+
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-
 </div>
-

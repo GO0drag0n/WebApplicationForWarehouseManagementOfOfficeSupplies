@@ -7,17 +7,17 @@
             <form asp-controller="Product" asp-action="Create" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <div class="mb-3">
-                    <label asp-for="ProductBrand" class="form-label"></label>
+                    <label asp-for="ProductBrand" class="form-label">Product brand</label>
                     <input asp-for="ProductBrand" class="form-control" />
                     <span asp-validation-for="ProductBrand" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="ProductModel" class="form-label"></label>
+                    <label asp-for="ProductModel" class="form-label"> Product Model</label>
                     <input asp-for="ProductModel" class="form-control" />
                     <span asp-validation-for="ProductModel" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="ProductCategoryID" class="form-label"></label>
+                    <label asp-for="ProductCategoryID" class="form-label">Product Category</label>
                     <div class="d-flex align-items-center">
                         <select asp-for="ProductCategoryID" class="form-select me-2" asp-items="Model.Categories"></select>
                         <button type="button" id="openCreateCategoryModal" class="btn btn-secondary btn-sm text-nowrap equal-height-button">
@@ -27,27 +27,27 @@
                     <span asp-validation-for="ProductCategoryID" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="ProductQuantity" class="form-label"></label>
+                    <label asp-for="ProductQuantity" class="form-label">Quantity (pcs.)</label>
                     <input asp-for="ProductQuantity" class="form-control" />
                     <span asp-validation-for="ProductQuantity" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="ProductPrice" class="form-label"></label>
+                    <label asp-for="ProductPrice" class="form-label">Selling price</label>
                     <input asp-for="ProductPrice" class="form-control" />
                     <span asp-validation-for="ProductPrice" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="ProductDeliveryPrice" class="form-label"></label>
+                    <label asp-for="ProductDeliveryPrice" class="form-label">Delivery price</label>
                     <input asp-for="ProductDeliveryPrice" class="form-control" />
                     <span asp-validation-for="ProductDeliveryPrice" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="ProductRow" class="form-label"></label>
+                    <label asp-for="ProductRow" class="form-label">Storage row</label>
                     <input asp-for="ProductRow" class="form-control" />
                     <span asp-validation-for="ProductRow" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="ProductSection" class="form-label"></label>
+                    <label asp-for="ProductSection" class="form-label">Storage section</label>
                     <input asp-for="ProductSection" class="form-control" />
                     <span asp-validation-for="ProductSection" class="text-danger"></span>
                 </div>

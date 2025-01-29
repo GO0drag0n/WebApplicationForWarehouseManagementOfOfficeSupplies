@@ -1,0 +1,108 @@
+﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs.PendingOrdersDetailsViewModel
+
+<div class="container my-4">
+    <h2 class="text-center">Request Details</h2>
+    <div class="card">
+        <div class="card-body">
+            <h5>Request Information</h5>
+            <p><strong>Request ID:</strong> @Model.RequestID</p>
+            <p><strong>Status:</strong> @Model.Status</p>
+
+            <h5 class="mt-3">Company Information</h5>
+            <p><strong>Company Name:</strong> @Model.CompanyName</p>
+            <p><strong>Address:</strong> @Model.CompanyAddress</p>
+            <p><strong>Phone:</strong> @Model.CompanyPhone</p>
+            <p><strong>Requested by:</strong> @Model.UserName</p>
+        </div>
+    </div>
+
+    <h4 class="mt-4">Products</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Brand</th>
+                <th>Model</th>
+                <th>Quantity</th>
+                <th>Row</th>
+                <th>Section</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model.RequestProducts)
+            {
+                <tr>
+                    <td>@product.ProductBrand</td>
+                    <td>@product.ProductModel</td>
+                    <td>@product.ProductQuantity pcs.</td>
+                    <td>@product.ProductRow</td>
+                    <td>@product.ProductSection</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Cancel Order Button (Only if status is Pending) -->
+    @if (Model.Status == "Pending")
+    {
+        <button class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">Cancel Order</button>
+    }
+
+    <!-- Confirm Delivery Button (Only if status is Sent) -->
+    @if (Model.Status == "Sent")
+    {
+        <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#confirmDeliveryModal">Confirm Delivery</button>
+    }
+</div>
+
+<!-- Bootstrap Modal for Confirming Cancellation -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="cancelOrderModalLabel">Confirm Order Cancellation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="lead text-center">Are you sure you want to cancel this order?</p>
+                <p class="text-muted text-center">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Order</button>
+                <a id="confirmCancelBtn" href="#" class="btn btn-danger">Yes, Cancel Order</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Modal for Confirming Delivery -->
+<div class="modal fade" id="confirmDeliveryModal" tabindex="-1" aria-labelledby="confirmDeliveryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="confirmDeliveryModalLabel">Confirm Delivery</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="lead text-center">Are you sure you have received this order?</p>
+                <p class="text-muted text-center">This will remove the order from the system.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Not Yet</button>
+                <a id="confirmDeliveryBtn" href="#" class="btn btn-success">Yes, Confirm Delivery</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to Handle Redirections -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector("#confirmCancelBtn").addEventListener("click", function () {
+            window.location.href = '/PendingOrders/CancelOrder/@Model.RequestID';
+        });
+
+        document.querySelector("#confirmDeliveryBtn").addEventListener("click", function () {
+            window.location.href = '/PendingOrders/ConfirmDelivery/@Model.RequestID';
+        });
+    });
+</script>
