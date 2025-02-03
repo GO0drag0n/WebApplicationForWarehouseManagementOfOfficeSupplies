@@ -97,6 +97,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return RedirectToAction("Login");
             }
 
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin"); // Check if the user is an Admin
             var isCompanyOwner = await _userManager.IsInRoleAsync(user, "Company Owner");
             var isCompanyWorker = await _userManager.IsInRoleAsync(user, "Company Worker");
 
@@ -120,6 +121,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
+                IsAdmin = isAdmin, // Set IsAdmin to true if the user is in the Admin role
                 IsCompanyOwner = isCompanyOwner,
                 IsCompanyWorker = isCompanyWorker,
                 CompanyName = companyName,
@@ -128,6 +130,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             return View(model);
         }
+
 
 
         [HttpPost]

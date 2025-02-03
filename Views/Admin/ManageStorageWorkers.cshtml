@@ -1,0 +1,66 @@
+﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs.ManageStorageWorkersViewModel
+
+@{
+    ViewData["Title"] = "Manage Storage Workers";
+}
+
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center">
+            <h2 class="fw-bold">Manage Storage Workers</h2>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="row mt-4">
+        <!-- Current Storage Workers -->
+        <div class="col-md-6">
+            <h4>Current Storage Workers</h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var worker in Model.StorageWorkers)
+                    {
+                        <tr>
+                            <td>@worker.FullName</td>
+                            <td>@worker.Email</td>
+                            <td>
+                                <form asp-action="RemoveStorageWorker" method="post">
+                                    <input type="hidden" name="userId" value="@worker.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add New Storage Worker -->
+        <div class="col-md-6">
+            <h4>Add New Storage Worker</h4>
+            <form asp-action="AddStorageWorker" method="post" class="p-3 border rounded bg-light">
+                <div class="form-group mb-3">
+                    <label for="email" class="form-label">Enter User Email:</label>
+                    <input type="email" name="email" class="form-control" required />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Add Storage Worker</button>
+            </form>
+        </div>
+    </div>
+</div>

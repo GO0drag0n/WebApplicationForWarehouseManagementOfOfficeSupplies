@@ -63,7 +63,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     ProductSection = p.Section > 0 ? p.Section : 1,
                     ProductPrice = p.Price,
                     ProductDeliveryPrice = p.DeliveryPrice,
-                    ProductQuantity = p.Quantity // Default quantity
+                    ProductQuantity = p.Quantity
                 }).ToList(),
                 Categories = categories
             };
@@ -71,7 +71,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(viewModel);
         }
 
-        // POST: Request/Create
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateRequestViewModel model)
@@ -98,15 +98,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             // Filter selected products based on quantity > 0
             var selectedProducts = model.RequestProducts
                 .Where(p => p.ProductQuantity > 0)
-                .Select(p => new RequestProduct
-                {
-                    ProductBrand = p.ProductBrand,
-                    ProductModel = p.ProductModel,
-                    ProductID = p.ProductID,
-                    Quantity = p.ProductQuantity,
-                    ProductRow = p.ProductRow, 
-                    ProductSection = p.ProductSection
-                })
                 .ToList();
 
             if (!selectedProducts.Any())
@@ -114,6 +105,23 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 // Add error if no products are selected
                 ModelState.AddModelError(string.Empty, "You must select at least one product with a quantity greater than 0.");
                 return View(model);
+            }
+
+            // Validate that the requested quantity does not exceed available stock
+            foreach (var product in selectedProducts)
+            {
+                var dbProduct = await _context.Products.FirstOrDefaultAsync(p => p.ProductID == product.ProductID);
+                if (dbProduct == null)
+                {
+                    ModelState.AddModelError(string.Empty, $"Product {product.ProductBrand} {product.ProductModel} does not exist.");
+                    return View(model);
+                }
+
+                if (product.ProductQuantity > dbProduct.Quantity)
+                {
+                    ModelState.AddModelError(string.Empty, $"Not enough stock for {product.ProductBrand} {product.ProductModel}. Available: {dbProduct.Quantity}, Requested: {product.ProductQuantity}.");
+                    return View(model);
+                }
             }
 
             // Populate RequestProductBrand and RequestProductModel from the first selected product
@@ -148,7 +156,15 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 Brand = model.RequestProductBrand,
                 Model = model.RequestProductModel,
                 CompanyId = company.CompanyId,
-                RequestProducts = selectedProducts
+                RequestProducts = selectedProducts.Select(p => new RequestProduct
+                {
+                    ProductBrand = p.ProductBrand,
+                    ProductModel = p.ProductModel,
+                    ProductID = p.ProductID,
+                    Quantity = p.ProductQuantity,
+                    ProductRow = p.ProductRow,
+                    ProductSection = p.ProductSection
+                }).ToList()
             };
 
             // Add and save the request to the database
@@ -159,9 +175,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             TempData["SuccessMessage"] = "Request created successfully!";
             return View(model);
         }
-
-
-
 
 
 

@@ -11,11 +11,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs
 
         public string? RequestUserID { get; set; } // Auto-filled by the controller
 
-        [Required(ErrorMessage = "At least one product is required.")]
+        /*[Required]*/
 
-        public string RequestProductBrand { get; set; }
+        public string? RequestProductBrand { get; set; }
 
-        public string RequestProductModel { get; set; }
+        public string? RequestProductModel { get; set; }
 
         public List<ProductViewModel> RequestProducts { get; set; } = new List<ProductViewModel>();
 

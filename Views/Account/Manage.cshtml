@@ -68,7 +68,15 @@
         </div>
 
         <div class="col-md-6">
-            @if (Model.IsCompanyOwner)
+            @if (Model.IsAdmin)
+            {
+                <div class="p-3 border rounded bg-light">
+                    <h4>Admin Management</h4>
+                    <a asp-controller="Admin" asp-action="ManageStorageWorkers" class="btn btn-primary w-100 mb-2">Manage Storage Workers</a>
+                    <a asp-controller="Admin" asp-action="ManageCategories" class="btn btn-secondary w-100">Manage Categories</a>
+                </div>
+            }
+            else if (Model.IsCompanyOwner)
             {
                 <div class="p-3 border rounded bg-light">
                     <h4>Manage Your Company</h4>
@@ -101,6 +109,7 @@
                 </form>
             }
         </div>
+
     </div>
 </div>
 
