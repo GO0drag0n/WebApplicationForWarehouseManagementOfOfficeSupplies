@@ -40,10 +40,9 @@
                             <td>@worker.FullName</td>
                             <td>@worker.Email</td>
                             <td>
-                                <form asp-action="RemoveStorageWorker" method="post">
-                                    <input type="hidden" name="userId" value="@worker.Id" />
-                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                </form>
+                                <button class="btn btn-danger btn-sm remove-worker-btn" data-user-id="@worker.Id" data-user-name="@worker.FullName" data-bs-toggle="modal" data-bs-target="#confirmRemoveModal">
+                                    Remove
+                                </button>
                             </td>
                         </tr>
                     }
@@ -64,3 +63,43 @@
         </div>
     </div>
 </div>
+
+<!-- Confirmation Modal for Removing Storage Worker -->
+<div class="modal fade" id="confirmRemoveModal" tabindex="-1" aria-labelledby="confirmRemoveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmRemoveModalLabel">Confirm Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to remove <strong id="workerNamePlaceholder"></strong> as a Storage Worker?
+            </div>
+            <div class="modal-footer">
+                <form id="removeWorkerForm" asp-action="RemoveStorageWorker" method="post">
+                    <input type="hidden" id="workerIdInput" name="userId" />
+                    <button type="submit" class="btn btn-danger">Yes, Remove</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const removeButtons = document.querySelectorAll('.remove-worker-btn');
+        const workerNamePlaceholder = document.getElementById('workerNamePlaceholder');
+        const workerIdInput = document.getElementById('workerIdInput');
+
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const userName = this.getAttribute('data-user-name');
+                const userId = this.getAttribute('data-user-id');
+
+                workerNamePlaceholder.textContent = userName;
+                workerIdInput.value = userId;
+            });
+        });
+    });
+</script>

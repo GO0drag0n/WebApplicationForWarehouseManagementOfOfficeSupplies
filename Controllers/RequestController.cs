@@ -122,6 +122,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     ModelState.AddModelError(string.Empty, $"Not enough stock for {product.ProductBrand} {product.ProductModel}. Available: {dbProduct.Quantity}, Requested: {product.ProductQuantity}.");
                     return View(model);
                 }
+
+                dbProduct.Quantity -= product.ProductQuantity;
+
+                _context.Entry(dbProduct).State = EntityState.Modified;
             }
 
             // Populate RequestProductBrand and RequestProductModel from the first selected product

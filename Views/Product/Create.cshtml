@@ -20,9 +20,13 @@
                     <label asp-for="ProductCategoryID" class="form-label">Product Category</label>
                     <div class="d-flex align-items-center">
                         <select asp-for="ProductCategoryID" class="form-select me-2" asp-items="Model.Categories"></select>
-                        <button type="button" id="openCreateCategoryModal" class="btn btn-secondary btn-sm text-nowrap equal-height-button">
-                            New Category
-                        </button>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <button type="button" id="openCreateCategoryModal" class="btn btn-secondary btn-sm text-nowrap equal-height-button">
+                                New Category
+                            </button>
+                        }
+
                     </div>
                     <span asp-validation-for="ProductCategoryID" class="text-danger"></span>
                 </div>
