@@ -1,19 +1,346 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="container my-5 text-center">
-    <h1 class="display-4 fw-bold mb-4">Welcome to WareSmart</h1>
-    <p class="lead text-muted">
-        Manage your company, workers, and inventory efficiently.
-    </p>
-    <hr class="my-4" />
-    <div class="d-flex justify-content-center">
-        <a asp-controller="Company" asp-action="Index" class="btn btn-primary btn-lg mx-2">
-            <i class="bi bi-building"></i> View Companies
-        </a>
-        <a asp-controller="Account" asp-action="Manage" class="btn btn-secondary btn-lg mx-2">
-            <i class="bi bi-person"></i> Manage Account
-        </a>
+
+<style>
+    main {
+        display: block !important;
+    }
+</style>
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<!-- Hero Section -->
+<section class="position-relative">
+    <img src="~/images/industrial-park-factory-building-warehouse.jpg" alt="Warehouse Illustration" class="img-fluid w-100 rounded">
+
+    <!-- Text in the top left -->
+    <div class="position-absolute top-0 start-0 p-3 text-start text-primary mt-2 ms-5 ">
+        <h1 class="fw-bold display-4">
+            Your <span class="text-warning">trusted partner</span> in storing <br> all kinds of stationery
+        </h1>
     </div>
-</div>
+
+    <div class="position-absolute top-50 end-0 translate-middle-y p-3" style="margin-right: 33rem">
+        <button class="btn btn-warning text-dark fw-bold" style="padding: 1rem 2rem; font-size: 1.5rem;">Learn More</button>
+    </div>
+
+
+</section>
+
+
+
+
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Image Column -->
+            <div class="col-md-6 mb-4 mb-md-0">
+                <img src="~/images/image(2).png"
+                     alt="Warehouse Shelving"
+                     class="img-fluid rounded" />
+            </div>
+
+            <!-- Text Column -->
+            <div class="col-md-6 text-center text-md-start">
+                <!-- Main Heading -->
+                <h2 class="fw-bold">TRUST US</h2>
+                <!-- Short colored line (custom style) -->
+                <hr class="mx-auto mx-md-0"
+                    style="width: 80px; height: 3px; background-color: #ffc107; border: none;" />
+
+                <!-- Descriptive Text -->
+                <p class="mt-4 fs-5 mb-0">
+                    Maximize space with our range of metal racks!
+                </p>
+                <p class="fs-5">
+                    We have a wide variety of types of storage racks,
+                    from light weight shelves to fairly heavy goods.
+                </p>
+
+                <!-- Stats Row -->
+                <div class="row g-4 mt-3">
+                    <div class="col-6 col-sm-4">
+                        <h4 class="fw-bold display-6 mb-0">
+                            10,303<span class="text-warning">+</span>
+                        </h4>
+                        <p>Satisfied customers</p>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <h4 class="fw-bold display-6 mb-0">
+                            10<span class="text-warning">+</span>
+                        </h4>
+                        <p>Years of experience</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<section class="py-5" style="background-color:white">
+    <!-- Top Section: Heading -->
+    <div class="container text-center" style="margin-bottom:7rem;">
+        <h2 class="fw-bold">OUR FEATURES</h2>
+        <!-- Short colored line -->
+        <hr class="mx-auto" style="width: 80px; height: 3px; background-color: #ffc107; border: none;" />
+    </div>
+
+    <!-- Yellow Background Section -->
+    <div style="background-color: #ffc107;">
+        <!-- Reduced vertical padding and allow overflow -->
+        <div class="container py-3 " style="overflow: visible;">
+            <div class="row align-items-center">
+                <!-- Text Column -->
+                <div class="col-md-6 mb-2 mb-md-0 text-dark">
+                    <h3 class="fw-bold">Flawless order system</h3>
+                    <p class="lead mb-0">
+                        Our flawless order system ensures seamless inventory management
+                        and efficient order fulfillment in our storage warehouse stationery company.
+                    </p>
+                </div>
+
+                <!-- Image Column -->
+                <div class="col-md-6 text-center">
+                    <!-- Negative margin to pull the image upward -->
+                    <img src="~/images/image(3).png"
+                         alt="Flawless Order System"
+                         class="img-fluid rounded"
+                         style="margin-top: -100px;" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background-color: #ffc107; margin-top:10rem;">
+        <!-- Reduced vertical padding and allow overflow -->
+        <div class="container py-0 " style="overflow: visible;">
+            <div class="row align-items-center">
+
+                <!-- Image Column -->
+                <div class="col-md-6 text-center">
+                    <!-- Negative margin to pull the image upward -->
+                    <img src="~/images/image(4).png"
+                         alt="Flawless Order System"
+                         class="img-fluid rounded"
+                         style="margin-top: -100px;" />
+                </div>
+
+                <!-- Text Column -->
+                <div class="col-md-6 mb-2 mb-md-0 text-dark">
+                    <h3 class="fw-bold">Low quantity alerts</h3>
+                    <p class="lead mb-0">
+                        By providing timely notifications, the feature helps maintain optimal
+                        supply levels, reduce operational disruptions, and streamline
+                        restocking processes.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Yellow Background Section -->
+    <div style="background-color: #ffc107; margin-top:10rem">
+        <!-- Reduced vertical padding and allow overflow -->
+        <div class="container py-3 " style="overflow: visible;">
+            <div class="row align-items-center">
+                <!-- Text Column -->
+                <div class="col-md-6 mb-2 mb-md-0 text-dark">
+                    <h3 class="fw-bold">Inventory management</h3>
+                    <p class="lead mb-0">
+                        We receive products directly from your supplier, enabling you 
+                        to handle and track inventory in real-time, with a few clicks.
+                    </p>
+                </div>
+
+                <!-- Image Column -->
+                <div class="col-md-6 text-center">
+                    <!-- Negative margin to pull the image upward -->
+                    <img src="~/images/image(5).png"
+                         alt="Flawless Order System"
+                         class="img-fluid rounded"
+                         style="margin-top: -100px;" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background-color: #ffc107; margin-top:10rem;">
+        <!-- Reduced vertical padding and allow overflow -->
+        <div class="container py-0 " style="overflow: visible;">
+            <div class="row align-items-center">
+
+                <!-- Image Column -->
+                <div class="col-md-6 text-center">
+                    <!-- Negative margin to pull the image upward -->
+                    <img src="~/images/image(6).png"
+                         alt="Flawless Order System"
+                         class="img-fluid rounded"
+                         style="margin-top: -100px;" />
+                </div>
+
+                <!-- Text Column -->
+                <div class="col-md-6 mb-2 mb-md-0 text-dark">
+                    <h3 class="fw-bold">The easiest way to order in bulk</h3>
+                    <p class="lead mb-0">
+                        Keep your workspace stocked without the hassle. Whether you're ordering 
+                        for an office, school, or retail store, our system ensures a seamless 
+                        and efficient bulk purchasing experience.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<section class="py-5 mb-5">
+    <div class="container">
+        <!-- Section Heading -->
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">REVIEWS FROM CLIENTS</h2>
+            <!-- Short colored line under heading -->
+            <hr class="mx-auto"
+                style="width: 100px; height: 3px; background-color: #ffc107; border: none;" />
+        </div>
+
+        <!-- Reviews Row -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            <!-- Card 1 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body">
+                        <div class="card-footer bg-white border-0 p-0">
+                            <div class="d-flex align-items-start ">
+                                <!-- Reviewer avatar -->
+                                <img src="~/images/avatar1.png"
+                                     alt="Reviewer"
+                                     class="rounded-circle me-3"
+                                     style="width: 50px; height: 50px; object-fit: cover;" />
+                                <div>
+                                    <h6 class="fw-bold mb-0">CECILY KNIGHT</h6>
+                                    <small class="text-muted">CEO</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-2 text-warning">
+                            ★ ★ ★ ★ ★
+                        </div>
+                        <!-- Review text -->
+                        <p class="card-text">
+                            “Exceptional service! Their flawless order system ensures we always
+                            receive our stationery supplies on time and without any mistakes.
+                            The real-time tracking feature gives us peace of mind,
+                            knowing exactly when our orders will arrive. Highly recommend!”
+                        </p>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow">
+
+                    <div class="card-body">
+                        <div class="card-footer bg-white border-0 p-0">
+                            <div class="d-flex align-items-center">
+                                <img src="~/images/avatar2.png"
+                                     alt="Reviewer"
+                                     class="rounded-circle me-3"
+                                     style="width: 50px; height: 50px; object-fit: cover;" />
+                                <div>
+                                    <h6 class="fw-bold mb-0">JEREMY VOLKOV</h6>
+                                    <small class="text-muted">CEO</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-2 text-warning">
+                            ★ ★ ★ ★ ★
+                        </div>
+                        <p class="card-text">
+                            “We’ve been using this company for our office stationery needs for over a year,
+                            and they never let us down. Their warehouse is well-organized, and orders are always accurate.
+                            The automated stock updates save us so much time.”
+                        </p>
+                    </div>
+                   
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body">
+                        <div class="card-footer bg-white border-0 p-0">
+                            <div class="d-flex align-items-center">
+                                <img src="~/images/avatar3.png"
+                                     alt="Reviewer"
+                                     class="rounded-circle me-3"
+                                     style="width: 50px; height: 50px; object-fit: cover;" />
+                                <div>
+                                    <h6 class="fw-bold mb-0">BRANDON KING</h6>
+                                    <small class="text-muted">ASSISTANT</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-2 text-warning">
+                            ★ ★ ★ ★ ★
+                        </div>
+                        <p class="card-text">
+                            “Reliable, efficient, and professional! Their storage and order management system
+                            is top-notch. We no longer waste money running out of essential supplies
+                            because their system keeps everything in check. A game-changer for our business!”
+                        </p>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="col">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body">
+                        <div class="card-footer bg-white border-0 p-0">
+                            <div class="d-flex align-items-center">
+                                <img src="~/images/avatar3.png"
+                                     alt="Reviewer"
+                                     class="rounded-circle me-3"
+                                     style="width: 50px; height: 50px; object-fit: cover;" />
+                                <div>
+                                    <h6 class="fw-bold mb-0">NIKOLAI SOKOLOV</h6>
+                                    <small class="text-muted">SCHOOL PRINCIPAL</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-2 text-warning">
+                            ★ ★ ★ ★ ★
+                        </div>
+                        <p class="card-text">
+                            “Fast and flawless service every time! The streamlined ordering process
+                            and prompt deliveries make this company stand out.
+                            Their customer support is also fantastic, always ready to assist with any inquiries.
+                            Definitely our go-to supplier!”
+                        </p>
+                    </div>
+                    
+                </div>
+            </div>
+            <!-- End of Card 4 -->
+        </div>
+        <!-- End of .row -->
+    </div>
+</section>
+
+
+
+
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

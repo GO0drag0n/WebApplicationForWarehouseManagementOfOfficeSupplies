@@ -19,6 +19,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
 
         public int ProductSection { get; set; }
 
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal UnitPrice { get; set; }
+
         [ForeignKey("ProductID")]
         public Product Product { get; set; }
 

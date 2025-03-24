@@ -83,6 +83,7 @@
                     <p><strong>Company Name:</strong> @Model.CompanyName</p>
                     <hr />
                     <a asp-controller="Company" asp-action="Manage" asp-route-id="@Model.CompanyId" class="btn btn-primary w-100 mb-2">Manage Company</a>
+
                     <a id="inviteWorkerButton" data-company-id="@Model.CompanyId" class="btn btn-secondary w-100 mb-2">Invite Worker</a>
                     <a asp-controller="Company" asp-action="Leave" asp-route-id="@Model.CompanyId" class="btn btn-danger w-100">Leave Company</a>
                 </div>

@@ -102,12 +102,13 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             if (!selectedProducts.Any())
             {
-                // Add error if no products are selected
                 ModelState.AddModelError(string.Empty, "You must select at least one product with a quantity greater than 0.");
                 return View(model);
             }
 
-            // Validate that the requested quantity does not exceed available stock
+            decimal totalPrice = 0m; // Variable to store total order price
+
+            // Validate stock and calculate total price
             foreach (var product in selectedProducts)
             {
                 var dbProduct = await _context.Products.FirstOrDefaultAsync(p => p.ProductID == product.ProductID);
@@ -123,9 +124,12 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     return View(model);
                 }
 
+                // Deduct stock quantity
                 dbProduct.Quantity -= product.ProductQuantity;
-
                 _context.Entry(dbProduct).State = EntityState.Modified;
+
+                // Calculate total price
+                totalPrice += product.ProductQuantity * dbProduct.Price;
             }
 
             // Populate RequestProductBrand and RequestProductModel from the first selected product
@@ -160,6 +164,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 Brand = model.RequestProductBrand,
                 Model = model.RequestProductModel,
                 CompanyId = company.CompanyId,
+                CreatedAt = DateTime.UtcNow, // Set the order creation time
+                TotalPrice = totalPrice, // Set the calculated total price
                 RequestProducts = selectedProducts.Select(p => new RequestProduct
                 {
                     ProductBrand = p.ProductBrand,
@@ -167,7 +173,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     ProductID = p.ProductID,
                     Quantity = p.ProductQuantity,
                     ProductRow = p.ProductRow,
-                    ProductSection = p.ProductSection
+                    ProductSection = p.ProductSection,
+                    UnitPrice = p.ProductPrice // Store the unit price in the request
                 }).ToList()
             };
 
@@ -177,8 +184,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             // Provide feedback and redirect
             TempData["SuccessMessage"] = "Request created successfully!";
-            return View(model);
+            return RedirectToAction("Create");
         }
+
 
 
 

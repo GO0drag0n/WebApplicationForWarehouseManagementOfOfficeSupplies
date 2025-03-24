@@ -33,7 +33,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            // Fetch the request with related data
             var request = await _context.Requests
                 .Include(r => r.Company)
                 .Include(r => r.RequestProducts)
@@ -43,18 +42,19 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             if (request == null)
             {
-                return NotFound(); // Handle case where the request is not found
+                return NotFound();
             }
-
 
             var viewModel = new PendingOrdersDetailsViewModel
             {
                 RequestID = request.RequestID,
                 Status = request.Status,
-                CompanyName = request.Company?.CompanyName, // Use null-safe navigation
+                CompanyName = request.Company?.CompanyName,
                 CompanyAddress = request.Company?.CompanyAddress,
                 CompanyPhone = request.Company?.CompanyPhone,
                 UserName = request.User?.UserName,
+                CreatedAt = request.CreatedAt, // Include order date
+                TotalPrice = request.TotalPrice, // Include total price
                 RequestProducts = request.RequestProducts?.Select(p => new ProductViewModel
                 {
                     ProductID = p.ProductID,
@@ -68,6 +68,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             return View(viewModel);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -119,7 +120,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(pendingRequests);
         }
 
-        [Authorize(Roles = "Company Owner,Company Worker")]
         public async Task<IActionResult> CompanyOrderDetails(int id)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -128,7 +128,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return Unauthorized();
             }
 
-            // Fetch the request with related data
             var request = await _context.Requests
                 .Include(r => r.Company)
                 .Include(r => r.RequestProducts)
@@ -141,17 +140,15 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return NotFound();
             }
 
-            // Ensure the user belongs to this company (Owner or Worker)
             var company = await _context.Companies
                 .Include(c => c.UserCompanies)
                 .FirstOrDefaultAsync(c => c.CompanyId == request.CompanyId);
 
             if (company == null || (company.OwnerId != userId && !company.UserCompanies.Any(uc => uc.UserId == userId)))
             {
-                return Forbid(); // Prevent unauthorized access
+                return Forbid();
             }
 
-            // Map to ViewModel
             var viewModel = new PendingOrdersDetailsViewModel
             {
                 RequestID = request.RequestID,
@@ -160,6 +157,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 CompanyAddress = request.Company?.CompanyAddress,
                 CompanyPhone = request.Company?.CompanyPhone,
                 UserName = request.User?.UserName,
+                CreatedAt = request.CreatedAt, // Include created date
+                TotalPrice = request.TotalPrice, // Include total price
                 RequestProducts = request.RequestProducts?.Select(p => new ProductViewModel
                 {
                     ProductID = p.ProductID,
@@ -174,6 +173,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(viewModel);
         }
 
+
         [Authorize(Roles = "Company Owner,Company Worker")]
         public async Task<IActionResult> CancelOrder(int id)
         {
@@ -183,9 +183,11 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return Unauthorized();
             }
 
-            // Fetch the order
+            // Fetch the order with related products
             var request = await _context.Requests
                 .Include(r => r.Company)
+                .Include(r => r.RequestProducts)
+                .ThenInclude(rp => rp.Product)
                 .FirstOrDefaultAsync(r => r.RequestID == id);
 
             if (request == null)
@@ -210,14 +212,26 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return RedirectToAction("CompanyOrderDetails", new { id });
             }
 
+            // Restore product stock
+            foreach (var requestProduct in request.RequestProducts)
+            {
+                var product = requestProduct.Product;
+                if (product != null)
+                {
+                    product.Quantity += requestProduct.Quantity; // Restore the ordered quantity
+                    _context.Products.Update(product);
+                }
+            }
+
             // Remove the order from the database
             _context.Requests.Remove(request);
+
+            // Save changes
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Order has been successfully canceled.";
+            TempData["SuccessMessage"] = "Order has been successfully canceled, and product stock has been restored.";
             return RedirectToAction("CompanyPendingOrders");
         }
-
         [Authorize(Roles = "Company Owner,Company Worker")]
         public async Task<IActionResult> ConfirmDelivery(int id)
         {

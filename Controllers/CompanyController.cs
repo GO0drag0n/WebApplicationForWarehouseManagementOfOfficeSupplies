@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
+using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.ViewModels;
 
@@ -184,5 +187,98 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             return View(company);
         }
+
+        [Authorize(Roles = "Company Owner")]
+        public async Task<IActionResult> Manage()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var company = await _context.Companies
+                .Include(c => c.UserCompanies)
+                .ThenInclude(uc => uc.User)
+                .FirstOrDefaultAsync(c => c.OwnerId == userId);
+
+            if (company == null)
+            {
+                return NotFound("No company found for the logged-in owner.");
+            }
+
+            var model = new ManageCompanyViewModel
+            {
+                CompanyId = company.CompanyId,
+                CompanyName = company.CompanyName,
+                Address = company.CompanyAddress,
+                PhoneNumber = company.CompanyPhone,
+                Workers = company.UserCompanies
+                    .Select(uc => new WorkerViewModel
+                    {
+                        WorkerId = uc.User.Id,
+                        Name = uc.User.UserName,
+                        Email = uc.User.Email
+                    }).ToList()
+            };
+
+            return View("ManageCompany", model);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Company Owner")]
+        public async Task<IActionResult> UpdateCompanyInfo(ManageCompanyViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("ManageCompany", model);
+            }
+
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.CompanyId == model.CompanyId);
+            if (company == null)
+            {
+                return NotFound("Company not found.");
+            }
+
+            company.CompanyAddress = model.Address;
+            company.CompanyPhone = model.PhoneNumber;
+
+            _context.Companies.Update(company);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Company details updated successfully.";
+            return RedirectToAction("ManageCompany");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Company Owner")]
+        public async Task<IActionResult> RemoveWorker(string workerId, Guid companyId)
+        {
+
+            var userCompany = await _context.UserCompanies
+                .FirstOrDefaultAsync(uc => uc.UserId == workerId && uc.CompanyId == companyId);
+
+            if (userCompany == null)
+            {
+                return NotFound("Worker not found in the company.");
+            }
+
+            _context.UserCompanies.Remove(userCompany);
+
+            var userRole = await _context.UserRoles
+                .FirstOrDefaultAsync(ur => ur.UserId == workerId);
+
+            if (userRole != null)
+            {
+                _context.UserRoles.Remove(userRole); 
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Worker removed and role reset successfully.";
+            return RedirectToAction("ManageCompany", new { id = companyId });
+        }
+
+
     }
 }

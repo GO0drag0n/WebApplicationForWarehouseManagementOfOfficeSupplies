@@ -1,0 +1,48 @@
+﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs.ManageCompanyViewModel
+
+<div class="container">
+    <h2>Manage Company: @Model.CompanyName</h2>
+
+    <form asp-action="UpdateCompanyInfo" method="post">
+        <input type="hidden" asp-for="CompanyId" />
+
+        <div class="mb-3">
+            <label for="Address" class="form-label">Company Address</label>
+            <input asp-for="Address" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="PhoneNumber" class="form-label">Phone Number</label>
+            <input asp-for="PhoneNumber" class="form-control" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Company Info</button>
+    </form>
+
+    <h3 class="mt-4">Company Workers</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var worker in Model.Workers)
+            {
+                <tr>
+                    <td>@worker.Name</td>
+                    <td>@worker.Email</td>
+                    <td>
+                        <form asp-action="RemoveWorker" method="post" style="display:inline;">
+                            <input type="hidden" name="workerId" value="@worker.WorkerId" />
+                            <input type="hidden" name="companyId" value="@Model.CompanyId" />
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

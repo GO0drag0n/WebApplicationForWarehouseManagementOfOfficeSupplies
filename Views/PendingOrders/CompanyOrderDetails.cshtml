@@ -7,12 +7,14 @@
             <h5>Request Information</h5>
             <p><strong>Request ID:</strong> @Model.RequestID</p>
             <p><strong>Status:</strong> @Model.Status</p>
-
+            <p><strong>Total Price:</strong> @Model.TotalPrice.ToString("C")</p>
             <h5 class="mt-3">Company Information</h5>
             <p><strong>Company Name:</strong> @Model.CompanyName</p>
             <p><strong>Address:</strong> @Model.CompanyAddress</p>
             <p><strong>Phone:</strong> @Model.CompanyPhone</p>
             <p><strong>Requested by:</strong> @Model.UserName</p>
+            <p><strong>Created At:</strong> @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+
         </div>
     </div>
 

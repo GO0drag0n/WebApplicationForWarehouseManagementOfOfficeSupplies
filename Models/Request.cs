@@ -26,6 +26,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
 
         [ForeignKey("CompanyId")]
         public Company Company { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public decimal TotalPrice { get; set; }
 
         // Navigation property for request history
         public ICollection<RequestHistory> RequestHistories { get; set; }
