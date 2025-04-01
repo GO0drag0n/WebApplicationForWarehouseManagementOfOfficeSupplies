@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\css\Index.css" />
     <None Include="wwwroot\css\output.css" />
   </ItemGroup>
 
