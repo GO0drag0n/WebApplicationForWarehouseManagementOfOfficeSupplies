@@ -4,7 +4,7 @@
 <div class="d-flex flex-column">
 
     <div class="text-center my-4">
-        <h2 class="mt-2">Product List</h2>
+        <h2 class="mt-2">Product Inventory</h2>
     </div>
 
     <div class="container">
@@ -12,8 +12,10 @@
         <div class="row mb-3">
             <div class="col-md-9">
                 <form asp-action="Index" method="get" class="d-flex">
-                    <input type="text" name="searchByBrand" class="form-control me-2" placeholder="Search by Brand" value="@ViewContext.HttpContext.Request.Query["searchByBrand"]" />
-                    <input type="text" name="searchByModel" class="form-control me-2" placeholder="Search by Model" value="@ViewContext.HttpContext.Request.Query["searchByModel"]" />
+                    <input type="text" name="searchByBrand" class="form-control me-2" placeholder="Search by Brand"
+                           value="@ViewContext.HttpContext.Request.Query["searchByBrand"]" />
+                    <input type="text" name="searchByModel" class="form-control me-2" placeholder="Search by Model"
+                           value="@ViewContext.HttpContext.Request.Query["searchByModel"]" />
 
                     <!-- Dropdown for Category Filter -->
                     <select name="categoryId" class="form-control me-2">
@@ -81,5 +83,41 @@
                 }
             </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+        {
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new {
+                            page = ViewBag.CurrentPage - 1,
+                            searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
+                            searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
+                            categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
+                        })">Previous</a>
+                    </li>
+                    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new {
+                                page = i,
+                                searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
+                                searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
+                                categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
+                            })">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new {
+                            page = ViewBag.CurrentPage + 1,
+                            searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
+                            searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
+                            categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
+                        })">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        }
     </div>
 </div>

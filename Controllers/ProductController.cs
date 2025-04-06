@@ -78,8 +78,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(string? searchByBrand, string? searchByModel, int? categoryId)
+        public IActionResult Index(string? searchByBrand, string? searchByModel, int? categoryId, int page = 1)
         {
+            int pageSize = 10;
+
             // Start with all products and include their category information.
             var query = _context.Products.Include(p => p.Category).AsQueryable();
 
@@ -113,9 +115,19 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             categories.Insert(0, new SelectListItem { Value = "", Text = "All Categories" });
             ViewBag.Categories = categories;
 
-            // Execute the query and return the result.
-            var products = query.ToList();
+            // Calculate pagination values.
+            int totalProducts = query.Count();
+            ViewBag.TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
+            ViewBag.CurrentPage = page;
+
+            // Retrieve only the products for the current page.
+            var products = query
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToList();
+
             return View(products);
         }
+
     }
 }
