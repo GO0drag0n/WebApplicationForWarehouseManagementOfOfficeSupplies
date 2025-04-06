@@ -22,40 +22,88 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             _context = context;
         }
 
-        [HttpGet]
+/*        [HttpGet]
         public IActionResult Register()
         {
             return View();
+        }*/
+
+        [HttpGet]
+        public IActionResult RegisterStep1()
+        {
+            return View(new RegisterStep1ViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        [ValidateAntiForgeryToken]
+        public IActionResult RegisterStep1(RegisterStep1ViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var user = new User
-                {
-                    UserName = model.Email,
-                    Email = model.Email,
-                    FirstName = model.FirstName,
-                    LastName = model.LastName
-                };
+                return View(model);
+            }
+            // Store first and last name in TempData for use in Step 2.
+            TempData["FirstName"] = model.FirstName;
+            TempData["LastName"] = model.LastName;
+            return RedirectToAction("RegisterStep2");
+        }
 
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
-                {
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
-                }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+        // STEP 2: Collect Email, Password, and Confirm Password
+        [HttpGet]
+        public IActionResult RegisterStep2()
+        {
+            // Retrieve first and last name from TempData.
+            var firstName = TempData["FirstName"] as string;
+            var lastName = TempData["LastName"] as string;
+            if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
+            {
+                // If values are missing, redirect back to Step 1.
+                return RedirectToAction("RegisterStep1");
             }
 
+            // Keep TempData values so they're available for the POST.
+            TempData.Keep("FirstName");
+            TempData.Keep("LastName");
+
+            var model = new RegisterStep2ViewModel
+            {
+                FirstName = firstName,
+                LastName = lastName
+            };
             return View(model);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterStep2(RegisterStep2ViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            // Create the new user using values from both steps.
+            var user = new User
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction("Index", "Home");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View(model);
+        }
+
 
         [HttpGet]
         public IActionResult Login()

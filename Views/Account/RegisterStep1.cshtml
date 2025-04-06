@@ -1,0 +1,64 @@
+﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs.RegisterStep1ViewModel
+
+@{
+    ViewBag.Title = "Register - Step 1";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-10">
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-body p-4">
+                <div class="row justify-content-center">
+                    <div class="col-12 text-center mb-4">
+                        <h3 class="card-title fw-bold text-primary">Create Account</h3>
+                        <p class="text-muted">Step 1 of 3: Personal Information</p>
+                    </div>
+
+                    <!-- Form Column (now full width) -->
+                    <div class="col-md-12">
+                        <form asp-action="RegisterStep1" method="post" class="needs-validation" novalidate>
+                            @Html.AntiForgeryToken()
+
+                            <div class="form-floating mb-3">
+                                <input asp-for="FirstName" class="form-control" placeholder="John" required />
+                                <label asp-for="FirstName">First name</label>
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-floating mb-4">
+                                <input asp-for="LastName" class="form-control" placeholder="Doe" required />
+                                <label asp-for="LastName">Last name</label>
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary py-3 fw-bold " >Continue to Step 2</button>
+                            </div>
+
+                            <div class="mt-3 text-center">
+                                <p class="mb-0">Already have an account? <a href="/Login" class="text-decoration-none fw-semibold">Sign in</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light p-3 border-top-0 rounded-bottom-3">
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 33%;" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <small class="text-primary fw-bold">Step 1: Personal Info</small>
+                    <small class="text-muted">Step 2: Account Setup</small>
+                    <small class="text-muted">Step 3: Confirmation</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
