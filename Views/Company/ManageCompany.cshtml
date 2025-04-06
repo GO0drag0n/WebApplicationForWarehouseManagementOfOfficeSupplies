@@ -4,7 +4,9 @@
     <h2>Manage Company: @Model.CompanyName</h2>
 
     <form asp-action="UpdateCompanyInfo" method="post">
+        @Html.AntiForgeryToken()
         <input type="hidden" asp-for="CompanyId" />
+        <input type="hidden" asp-for="CompanyName" />
 
         <div class="mb-3">
             <label for="Address" class="form-label">Company Address</label>

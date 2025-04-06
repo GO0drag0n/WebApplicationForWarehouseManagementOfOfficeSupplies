@@ -21,6 +21,8 @@ public class AdminController : Controller
         _context = context;
     }
 
+    // ----- Storage Worker Methods -----
+
     // Displays the list of storage workers and allows adding new ones
     [HttpGet]
     public async Task<IActionResult> ManageStorageWorkers()
@@ -104,5 +106,73 @@ public class AdminController : Controller
         }
 
         return RedirectToAction("ManageStorageWorkers");
+    }
+
+    // ----- Category Management Methods -----
+
+    // GET: Display a list of categories
+    [HttpGet]
+    public async Task<IActionResult> ManageCategories()
+    {
+        var categories = await _context.Categories
+            .Select(c => new ManageCategoriesViewModel
+            {
+                CategoryID = c.CategoryID,
+                CategoryName = c.Name,
+                UniqueNumber = c.UniqueNumber.ToString(),
+                ProductCount = _context.Products.Count(p => p.CategoryID == c.CategoryID)
+            })
+            .ToListAsync();
+
+        // The view is strongly typed to IEnumerable<ManageCategoriesViewModel>
+        return View(categories);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RenameCategory(ManageCategoriesViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var categories = await _context.Categories
+                .Select(c => new ManageCategoriesViewModel
+                {
+                    CategoryID = c.CategoryID,
+                    CategoryName = c.Name,
+                    UniqueNumber = c.UniqueNumber.ToString(),
+                    ProductCount = _context.Products.Count(p => p.CategoryID == c.CategoryID)
+                })
+                .ToListAsync();
+            return View("ManageCategories", categories);
+        }
+
+        var category = await _context.Categories.FindAsync(model.CategoryID);
+        if (category == null)
+        {
+            return NotFound();
+        }
+
+        // Update only the CategoryName
+        category.Name = model.CategoryName;
+        _context.Categories.Update(category);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(ManageCategories));
+    }
+
+    // POST: Delete a category
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteCategory(int id)
+    {
+        var category = await _context.Categories.FindAsync(id);
+        if (category == null)
+        {
+            return NotFound();
+        }
+
+        _context.Categories.Remove(category);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(ManageCategories));
     }
 }

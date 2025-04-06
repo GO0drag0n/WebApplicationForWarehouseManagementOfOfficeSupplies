@@ -226,6 +226,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Company Owner")]
         public async Task<IActionResult> UpdateCompanyInfo(ManageCompanyViewModel model)
         {
@@ -247,7 +248,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Company details updated successfully.";
-            return RedirectToAction("ManageCompany");
+            return RedirectToAction("Manage");
         }
 
         [HttpPost]
