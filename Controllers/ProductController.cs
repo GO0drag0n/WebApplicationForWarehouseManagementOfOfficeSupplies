@@ -78,20 +78,42 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(string? searchByBrand, string? searchByModel)
+        public IActionResult Index(string? searchByBrand, string? searchByModel, int? categoryId)
         {
+            // Start with all products and include their category information.
             var query = _context.Products.Include(p => p.Category).AsQueryable();
 
+            // Apply the brand filter if provided.
             if (!string.IsNullOrEmpty(searchByBrand))
             {
                 query = query.Where(p => EF.Functions.Like(p.Brand, $"%{searchByBrand}%"));
             }
 
+            // Apply the model filter if provided.
             if (!string.IsNullOrEmpty(searchByModel))
             {
                 query = query.Where(p => EF.Functions.Like(p.Model, $"%{searchByModel}%"));
             }
 
+            // Apply the category filter if provided.
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryID == categoryId.Value);
+            }
+
+            // Prepare the categories for the dropdown.
+            var categories = _context.Categories
+                 .Select(c => new SelectListItem
+                 {
+                     Value = c.CategoryID.ToString(),
+                     Text = c.Name
+                 }).ToList();
+
+            // Insert the "All Categories" option at the top.
+            categories.Insert(0, new SelectListItem { Value = "", Text = "All Categories" });
+            ViewBag.Categories = categories;
+
+            // Execute the query and return the result.
             var products = query.ToList();
             return View(products);
         }

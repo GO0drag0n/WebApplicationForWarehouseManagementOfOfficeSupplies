@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Product>
+﻿@model IEnumerable<WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Product>
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 <div class="d-flex flex-column">
 
@@ -13,6 +14,20 @@
                 <form asp-action="Index" method="get" class="d-flex">
                     <input type="text" name="searchByBrand" class="form-control me-2" placeholder="Search by Brand" value="@ViewContext.HttpContext.Request.Query["searchByBrand"]" />
                     <input type="text" name="searchByModel" class="form-control me-2" placeholder="Search by Model" value="@ViewContext.HttpContext.Request.Query["searchByModel"]" />
+
+                    <!-- Dropdown for Category Filter -->
+                    <select name="categoryId" class="form-control me-2">
+                        @{
+                            var categories = (IEnumerable<SelectListItem>)ViewBag.Categories;
+                            var currentCategory = ViewContext.HttpContext.Request.Query["categoryId"].ToString();
+                            foreach (var category in categories)
+                            {
+                                var selected = (currentCategory == category.Value) ? " selected" : "";
+                                WriteLiteral($"<option value=\"{category.Value}\"{selected}>{category.Text}</option>");
+                            }
+                        }
+                    </select>
+
                     <button class="btn btn-primary" type="submit">Search</button>
                 </form>
             </div>
@@ -67,6 +82,4 @@
             </tbody>
         </table>
     </div>
-
-
 </div>
