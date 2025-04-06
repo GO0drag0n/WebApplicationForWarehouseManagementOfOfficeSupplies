@@ -44,7 +44,7 @@ public class AdminController : Controller
 
     // Adds a user as a storage worker, ensuring role conflicts are avoided
     [HttpPost]
-    public async Task<IActionResult> AddStorageWorker(string email)
+    public async Task<IActionResult> AddStorageWorker(string email, [FromServices] SignInManager<User> signInManager)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
@@ -74,6 +74,12 @@ public class AdminController : Controller
         {
             TempData["ErrorMessage"] = "User is already a Storage Worker.";
             return RedirectToAction("ManageStorageWorkers");
+        }
+
+        var currentUserId = _userManager.GetUserId(User);
+        if (currentUserId == user.Id)
+        {
+            await signInManager.RefreshSignInAsync(user);
         }
 
         // Assign the "Storage Worker" role

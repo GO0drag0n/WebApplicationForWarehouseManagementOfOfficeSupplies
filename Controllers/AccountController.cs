@@ -22,12 +22,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             _context = context;
         }
 
-/*        [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }*/
-
         [HttpGet]
         public IActionResult RegisterStep1()
         {
@@ -258,7 +252,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> JoinCompany(string companyCode)
+        public async Task<IActionResult> JoinCompany(string companyCode,
+    [FromServices] SignInManager<User> signInManager)
         {
             if (string.IsNullOrWhiteSpace(companyCode))
             {
@@ -285,7 +280,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             // Check if the user is already a member of this company
             var existingMembership = await _context.UserCompanies
                 .AnyAsync(uc => uc.UserId == user.Id && uc.CompanyId == company.CompanyId);
-
             if (existingMembership)
             {
                 TempData["ErrorMessage"] = "You are already a member of this company.";
@@ -300,10 +294,17 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             };
             _context.UserCompanies.Add(userCompany);
 
-            // Add user to the "Company Worker" role
+            // Add user to the "Company Worker" role if not already assigned
             if (!await _userManager.IsInRoleAsync(user, "Company Worker"))
             {
-                await _userManager.AddToRoleAsync(user, "Company Worker");
+                var result = await _userManager.AddToRoleAsync(user, "Company Worker");
+                if (!result.Succeeded)
+                {
+                    TempData["ErrorMessage"] = "Failed to assign role: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                    return RedirectToAction("Manage");
+                }
+                // Refresh the sign-in so that the updated role is reflected in the user's claims
+                await signInManager.RefreshSignInAsync(user);
             }
 
             await _context.SaveChangesAsync();
@@ -311,6 +312,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             TempData["SuccessMessage"] = $"You have successfully joined the company: {company.CompanyName}.";
             return RedirectToAction("Manage");
         }
+
 
 
 

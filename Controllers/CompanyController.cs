@@ -35,7 +35,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CompanyCreateViewModel model,
                                                 [FromServices] UserManager<User> userManager,
-                                                [FromServices] RoleManager<IdentityRole> roleManager)
+                                                [FromServices] RoleManager<IdentityRole> roleManager,
+                                                [FromServices] SignInManager<User> signInManager)
         {
             if (ModelState.IsValid)
             {
@@ -59,7 +60,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     return NotFound("User not found.");
                 }
 
-                // Assign the user to the "Company Owner" role if not already assigned
                 if (!await userManager.IsInRoleAsync(user, "Company Owner"))
                 {
                     var result = await userManager.AddToRoleAsync(user, "Company Owner");
@@ -68,6 +68,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                         ModelState.AddModelError("", "Failed to assign role: " + string.Join(", ", result.Errors.Select(e => e.Description)));
                         return View("CreateCompany", model);
                     }
+                    // Refresh the sign-in so that the updated role is reflected in the user's claims
+                    await signInManager.RefreshSignInAsync(user);
                 }
 
                 // Create the company
