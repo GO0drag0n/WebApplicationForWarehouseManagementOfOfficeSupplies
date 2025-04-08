@@ -19,11 +19,51 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? searchByBrand, string? searchByModel, int? categoryId, int page = 1)
         {
-            var products = _context.Products.Include(p => p.Category).ToList();
+            int pageSize = 10;
+
+            // Start with all products and include category information.
+            var query = _context.Products.Include(p => p.Category).AsQueryable();
+
+            // Apply filters if provided.
+            if (!string.IsNullOrEmpty(searchByBrand))
+            {
+                query = query.Where(p => EF.Functions.Like(p.Brand, $"%{searchByBrand}%"));
+            }
+            if (!string.IsNullOrEmpty(searchByModel))
+            {
+                query = query.Where(p => EF.Functions.Like(p.Model, $"%{searchByModel}%"));
+            }
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryID == categoryId.Value);
+            }
+
+            // Calculate pagination values.
+            int totalProducts = query.Count();
+            ViewBag.TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
+            ViewBag.CurrentPage = page;
+
+            // Retrieve only the products for the current page.
+            var products = query
+                           .Skip((page - 1) * pageSize)
+                           .Take(pageSize)
+                           .ToList();
+
+            // Prepare categories for filtering in the view (if needed).
+            var categories = _context.Categories
+                .Select(c => new SelectListItem
+                {
+                    Value = c.CategoryID.ToString(),
+                    Text = c.Name
+                }).ToList();
+            categories.Insert(0, new SelectListItem { Value = "", Text = "All Categories" });
+            ViewBag.Categories = categories;
+
             return View(products);
         }
+
 
         [HttpGet]
         public IActionResult Create()
@@ -77,57 +117,102 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return RedirectToAction("Index");
         }
 
+
         [HttpGet]
-        public IActionResult Index(string? searchByBrand, string? searchByModel, int? categoryId, int page = 1)
+        public async Task<IActionResult> Edit(int? id)
         {
-            int pageSize = 10;
-
-            // Start with all products and include their category information.
-            var query = _context.Products.Include(p => p.Category).AsQueryable();
-
-            // Apply the brand filter if provided.
-            if (!string.IsNullOrEmpty(searchByBrand))
+            if (id == null)
             {
-                query = query.Where(p => EF.Functions.Like(p.Brand, $"%{searchByBrand}%"));
+                return NotFound();
             }
 
-            // Apply the model filter if provided.
-            if (!string.IsNullOrEmpty(searchByModel))
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
             {
-                query = query.Where(p => EF.Functions.Like(p.Model, $"%{searchByModel}%"));
+                return NotFound();
             }
 
-            // Apply the category filter if provided.
-            if (categoryId.HasValue)
+            // Map the entity to your view model.
+            var viewModel = new EditProductViewModel
             {
-                query = query.Where(p => p.CategoryID == categoryId.Value);
-            }
+                ProductID = product.ProductID,
+                Brand = product.Brand,
+                Model = product.Model,
+                CategoryID = product.CategoryID,
+                Quantity = product.Quantity,
+                DeliveryPrice = product.DeliveryPrice,
+                Price = product.Price,
+                Row = product.Row,
+                Section = product.Section
+            };
 
-            // Prepare the categories for the dropdown.
-            var categories = _context.Categories
-                 .Select(c => new SelectListItem
-                 {
-                     Value = c.CategoryID.ToString(),
-                     Text = c.Name
-                 }).ToList();
-
-            // Insert the "All Categories" option at the top.
-            categories.Insert(0, new SelectListItem { Value = "", Text = "All Categories" });
-            ViewBag.Categories = categories;
-
-            // Calculate pagination values.
-            int totalProducts = query.Count();
-            ViewBag.TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
-            ViewBag.CurrentPage = page;
-
-            // Retrieve only the products for the current page.
-            var products = query
-                            .Skip((page - 1) * pageSize)
-                            .Take(pageSize)
-                            .ToList();
-
-            return View(products);
+            ViewBag.Categories = new SelectList(_context.Categories, "CategoryID", "Name", product.CategoryID);
+            return View(viewModel);
         }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditProductViewModel editModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = new SelectList(_context.Categories, "CategoryID", "Name", editModel.CategoryID);
+                return View(editModel);
+            }
+
+            // Retrieve the existing product using ProductID from the model.
+            var productToUpdate = await _context.Products.FindAsync(editModel.ProductID);
+            if (productToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            // Map the fields from the view model.
+            productToUpdate.Brand = editModel.Brand;
+            productToUpdate.Model = editModel.Model;
+            productToUpdate.CategoryID = editModel.CategoryID;
+            productToUpdate.Quantity = editModel.Quantity;
+            productToUpdate.DeliveryPrice = editModel.DeliveryPrice;
+            productToUpdate.Price = editModel.Price;
+            productToUpdate.Row = editModel.Row;
+            productToUpdate.Section = editModel.Section;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Products.Any(e => e.ProductID == editModel.ProductID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
 
     }
 }
+
