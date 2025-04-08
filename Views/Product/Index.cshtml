@@ -1,123 +1,250 @@
 ﻿@model IEnumerable<WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Product>
 @using Microsoft.AspNetCore.Mvc.Rendering
 
-<div class="d-flex flex-column">
-
-    <div class="text-center my-4">
-        <h2 class="mt-2">Product Inventory</h2>
-    </div>
-
-    <div class="container">
-        <!-- Search Bar and Add Button Row -->
-        <div class="row mb-3">
-            <div class="col-md-9">
-                <form asp-action="Index" method="get" class="d-flex">
-                    <input type="text" name="searchByBrand" class="form-control me-2" placeholder="Search by Brand"
-                           value="@ViewContext.HttpContext.Request.Query["searchByBrand"]" />
-                    <input type="text" name="searchByModel" class="form-control me-2" placeholder="Search by Model"
-                           value="@ViewContext.HttpContext.Request.Query["searchByModel"]" />
-
-                    <!-- Dropdown for Category Filter -->
-                    <select name="categoryId" class="form-control me-2">
-                        @{
-                            var categories = (IEnumerable<SelectListItem>)ViewBag.Categories;
-                            var currentCategory = ViewContext.HttpContext.Request.Query["categoryId"].ToString();
-                            foreach (var category in categories)
-                            {
-                                var selected = (currentCategory == category.Value) ? " selected" : "";
-                                WriteLiteral($"<option value=\"{category.Value}\"{selected}>{category.Text}</option>");
-                            }
-                        }
-                    </select>
-
-                    <button class="btn btn-primary" type="submit">Search</button>
-                </form>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <!-- Combined Header and Search Card -->
+            <div class="card shadow border-0 rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="card-title fw-bold text-primary mb-0">
+                                <i class="bi bi-box-seam"></i>Product Inventory
+                            </h3>
+                            <p class="text-muted mt-1 mb-0">Manage your warehouse inventory</p>
+                        </div>
+                        <a class="btn btn-primary" asp-action="Create">
+                            <i class="bi bi-plus-circle me-1"></i> Add New Product
+                        </a>
+                    </div>
+                    
+                    <hr class="my-3">
+                    
+                    <!-- Search Section -->
+                    <h5 class="mb-3"><i class="bi bi-search me-2"></i>Search & Filter</h5>
+                    <form asp-action="Index" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="form-floating">
+                                    <input type="text" name="searchByBrand" class="form-control" id="searchByBrand" 
+                                           placeholder="Brand" value="@ViewContext.HttpContext.Request.Query["searchByBrand"]" />
+                                    <label for="searchByBrand">Brand</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-floating">
+                                    <input type="text" name="searchByModel" class="form-control" id="searchByModel" 
+                                           placeholder="Model" value="@ViewContext.HttpContext.Request.Query["searchByModel"]" />
+                                    <label for="searchByModel">Model</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-floating">
+                                    <select name="categoryId" class="form-select" id="categoryFilter">
+                                        <option value="">All Categories</option>
+                                        @{
+                                            var categories = (IEnumerable<SelectListItem>)ViewBag.Categories;
+                                            var currentCategory = ViewContext.HttpContext.Request.Query["categoryId"].ToString();
+                                            foreach (var category in categories)
+                                            {
+                                                var selected = (currentCategory == category.Value) ? " selected" : "";
+                                                WriteLiteral($"<option value=\"{category.Value}\"{selected}>{category.Text}</option>");
+                                            }
+                                        }
+                                    </select>
+                                    <label for="categoryFilter">Category</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-center">
+                                <button class="btn btn-primary w-100 py-3" type="submit">
+                                    <i class="bi bi-search me-1"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="col-md-3 text-end">
-                <a class="btn btn-success" asp-action="Create">Add New Product</a>
+
+            <!-- Products Table Card -->
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-header bg-white p-3 border-bottom-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Products</h5>
+                        <span class="badge bg-primary rounded-pill">@(Model?.Count() ?? 0) items</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">ID</th>
+                                    <th>Brand</th>
+                                    <th>Model</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Delivery Price</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-center">Row</th>
+                                    <th class="text-center">Section</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var product in Model)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">@product.ProductID</td>
+                                            <td>@product.Brand</td>
+                                            <td>@product.Model</td>
+                                            <td>
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                                    @product.Category?.Name
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (product.Quantity <= 5)
+                                                {
+                                                    <span class="badge bg-danger">@product.Quantity</span>
+                                                }
+                                                else if (product.Quantity <= 20)
+                                                {
+                                                    <span class="badge bg-warning text-dark">@product.Quantity</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success">@product.Quantity</span>
+                                                }
+                                            </td>
+                                            <td class="text-end">@product.DeliveryPrice.ToString("C")</td>
+                                            <td class="text-end fw-bold">@product.Price.ToString("C")</td>
+                                            <td class="text-center">@product.Row</td>
+                                            <td class="text-center">@product.Section</td>
+                                            <td class="text-end pe-4">
+                                                <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@product.ProductID">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        data-bs-toggle="modal" data-bs-target="#deleteProductModal" 
+                                                        data-product-id="@product.ProductID" 
+                                                        data-product-name="@product.Brand @product.Model">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="10" class="text-center py-5">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                                                <p class="mt-2 mb-0">No products found.</p>
+                                                <p class="text-muted small">Try adjusting your search criteria or add a new product.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination in Card Footer -->
+                @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+                {
+                    <div class="card-footer bg-white p-3 border-top-0">
+                        <nav>
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new {
+                                        page = ViewBag.CurrentPage - 1,
+                                        searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
+                                        searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
+                                        categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
+                                    })">
+                                        Previous
+                                    </a>
+                                </li>
+                                @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new {
+                                            page = i,
+                                            searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
+                                            searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
+                                            categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
+                                        })">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new {
+                                        page = ViewBag.CurrentPage + 1,
+                                        searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
+                                        searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
+                                        categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
+                                    })">
+                                        Next
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
             </div>
         </div>
-
-        <!-- Product Table -->
-        <table class="table table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Brand</th>
-                    <th>Model</th>
-                    <th>Category</th>
-                    <th>Quantity</th>
-                    <th>Delivery Price</th>
-                    <th>Price</th>
-                    <th>Row</th>
-                    <th>Section</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
-                {
-                    foreach (var product in Model)
-                    {
-                        <tr>
-                            <td>@product.ProductID</td>
-                            <td>@product.Brand</td>
-                            <td>@product.Model</td>
-                            <td>@product.Category?.Name</td>
-                            <td>@product.Quantity</td>
-                            <td>@product.DeliveryPrice.ToString("C")</td>
-                            <td>@product.Price.ToString("C")</td>
-                            <td>@product.Row</td>
-                            <td>@product.Section</td>
-                            <td>
-                                <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@product.ProductID">Edit</a>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="10" class="text-center">No products found.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <!-- Pagination Controls -->
-        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
-        {
-            <nav>
-                <ul class="pagination justify-content-center">
-                    <li class="page-item @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
-                        <a class="page-link" href="@Url.Action("Index", new {
-                            page = ViewBag.CurrentPage - 1,
-                            searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
-                            searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
-                            categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
-                        })">Previous</a>
-                    </li>
-                    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
-                    {
-                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                            <a class="page-link" href="@Url.Action("Index", new {
-                                page = i,
-                                searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
-                                searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
-                                categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
-                            })">@i</a>
-                        </li>
-                    }
-                    <li class="page-item @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
-                        <a class="page-link" href="@Url.Action("Index", new {
-                            page = ViewBag.CurrentPage + 1,
-                            searchByBrand = ViewContext.HttpContext.Request.Query["searchByBrand"],
-                            searchByModel = ViewContext.HttpContext.Request.Query["searchByModel"],
-                            categoryId = ViewContext.HttpContext.Request.Query["categoryId"]
-                        })">Next</a>
-                    </li>
-                </ul>
-            </nav>
-        }
     </div>
 </div>
+
+<!-- Delete Product Modal -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteProductModalLabel">Confirm Product Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger">Warning: This action cannot be undone.</p>
+                <p>Are you sure you want to delete <strong id="productNameToDelete"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" name="id" id="productIdToDelete" />
+                    <button type="submit" class="btn btn-danger">Delete Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Script to pass product data to the delete modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteProductModal = document.getElementById('deleteProductModal');
+            if (deleteProductModal) {
+                deleteProductModal.addEventListener('show.bs.modal', function(event) {
+                    // Button that triggered the modal
+                    const button = event.relatedTarget;
+                    
+                    // Extract product info from data attributes
+                    const productId = button.getAttribute('data-product-id');
+                    const productName = button.getAttribute('data-product-name');
+                    
+                    // Update the modal's content
+                    const productIdInput = document.getElementById('productIdToDelete');
+                    const productNameSpan = document.getElementById('productNameToDelete');
+                    
+                    productIdInput.value = productId;
+                    productNameSpan.textContent = productName;
+                });
+            }
+        });
+    </script>
+}
