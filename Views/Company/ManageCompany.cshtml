@@ -1,50 +1,212 @@
 ﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs.ManageCompanyViewModel
 
-<div class="container">
-    <h2>Manage Company: @Model.CompanyName</h2>
+@{
+    ViewBag.Title = "Manage Company";
+}
 
-    <form asp-action="UpdateCompanyInfo" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="CompanyId" />
-        <input type="hidden" asp-for="CompanyName" />
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Company Info Card -->
+            <div class="card shadow border-0 rounded-3 mb-4">
+                <div class="card-header bg-white p-4 border-bottom-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title fw-bold text-primary mb-0">
+                            <i class="bi bi-building me-2"></i>@Model.CompanyName
+                        </h3>
+                        <!-- Delete Company Button -->
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCompanyModal">
+                            <i class="bi bi-trash me-1"></i> Delete Company
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="UpdateCompanyInfo" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="CompanyId" />
+                        <input type="hidden" asp-for="CompanyName" />
 
-        <div class="mb-3">
-            <label for="Address" class="form-label">Company Address</label>
-            <input asp-for="Address" class="form-control" required />
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Address" class="form-control" placeholder="Address" required />
+                                    <label asp-for="Address">Company Address</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Phone Number" required />
+                                    <label asp-for="PhoneNumber">Phone Number</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Added VAT Number Field -->
+                        <div class="mb-3">
+                            <div class="form-floating">
+                                <input class="form-control" placeholder="VAT Number" />
+                                <label>VAT Number</label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-save me-1"></i> Update Company Info
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Company Workers Card -->
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-header bg-white p-4 border-bottom-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title fw-bold mb-0">Company Workers</h3>
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addWorkerModal">
+                            <i class="bi bi-person-plus me-1"></i> Add Worker
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Name</th>
+                                    <th>Email</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Workers.Any())
+                                {
+                                    @foreach (var worker in Model.Workers)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">@worker.Name</td>
+                                            <td>@worker.Email</td>
+                                            <td class="text-end pe-4">
+                                                <!-- Remove button includes data attributes for worker id and name -->
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        data-bs-toggle="modal" data-bs-target="#removeWorkerModal"
+                                                        data-workerid="@worker.WorkerId" data-workername="@worker.Name">
+                                                    <i class="bi bi-trash"></i> Remove
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4">No workers found. Add workers to your company.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label for="PhoneNumber" class="form-label">Phone Number</label>
-            <input asp-for="PhoneNumber" class="form-control" required />
-        </div>
-
-        <button type="submit" class="btn btn-primary">Update Company Info</button>
-    </form>
-
-    <h3 class="mt-4">Company Workers</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var worker in Model.Workers)
-            {
-                <tr>
-                    <td>@worker.Name</td>
-                    <td>@worker.Email</td>
-                    <td>
-                        <form asp-action="RemoveWorker" method="post" style="display:inline;">
-                            <input type="hidden" name="workerId" value="@worker.WorkerId" />
-                            <input type="hidden" name="companyId" value="@Model.CompanyId" />
-                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    </div>
 </div>
+
+<!-- Delete Company Modal -->
+<div class="modal fade" id="deleteCompanyModal" tabindex="-1" aria-labelledby="deleteCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCompanyModalLabel">Confirm Company Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger">Warning: This action cannot be undone.</p>
+                <p>Are you sure you want to permanently delete <strong>@Model.CompanyName</strong>?</p>
+                <p>All associated data including workers, inventory, and records will be permanently removed.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="DeleteCompany" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="companyId" value="@Model.CompanyId" />
+                    <button type="submit" class="btn btn-danger">Delete Company</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Simplified Add Worker Modal -->
+<div class="modal fade" id="addWorkerModal" tabindex="-1" aria-labelledby="addWorkerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addWorkerModalLabel">Add New Worker</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="AddWorker" method="post">
+                    <input type="hidden" name="companyId" value="@Model.CompanyId" />
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="workerEmail" name="email" placeholder="name@example.com" required />
+                        <label for="workerEmail">Worker Email</label>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Add Worker</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Remove Worker Modal -->
+<div class="modal fade" id="removeWorkerModal" tabindex="-1" aria-labelledby="removeWorkerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeWorkerModalLabel">Confirm Worker Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <strong id="workerNameToRemove"></strong>?</p>
+                <p>This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="removeWorkerForm" asp-action="RemoveWorker" method="post">
+                    <input type="hidden" name="workerId" id="removeWorkerId" />
+                    <input type="hidden" name="companyId" value="@Model.CompanyId" />
+                    <button type="submit" class="btn btn-danger">Remove Worker</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Listen for when the removeWorkerModal is about to be shown
+        var removeWorkerModal = document.getElementById('removeWorkerModal');
+        removeWorkerModal.addEventListener('show.bs.modal', function (event) {
+            // Button that triggered the modal
+            var button = event.relatedTarget;
+            // Extract info from data-* attributes
+            var workerId = button.getAttribute('data-workerid');
+            var workerName = button.getAttribute('data-workername');
+
+            // Update the modal's content.
+            var modalWorkerNameElement = removeWorkerModal.querySelector('#workerNameToRemove');
+            modalWorkerNameElement.textContent = workerName;
+
+            // Set the workerId in the modal's hidden input
+            var workerIdInput = removeWorkerModal.querySelector('#removeWorkerId');
+            workerIdInput.value = workerId;
+        });
+    </script>
+}

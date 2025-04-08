@@ -140,38 +140,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(model);
         }
 
-        // GET: Company/Delete/5
-        public IActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var company = _context.Companies.Find(id);
-            if (company == null)
-            {
-                return NotFound();
-            }
-
-            return View(company);
-        }
-
-        // POST: Company/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            var company = _context.Companies.Find(id);
-            if (company == null)
-            {
-                return NotFound();
-            }
-
-            _context.Companies.Remove(company);
-            _context.SaveChanges();
-            return RedirectToAction(nameof(Index));
-        }
+        
 
         // GET: Company/Details/5
         public IActionResult Details(int? id)
@@ -254,6 +223,65 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Company Owner")]
+        public async Task<IActionResult> DeleteCompany(Guid companyId)
+        {
+            // Get the current logged-in user's ID.
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            // Retrieve the company owned by the current user, including its related UserCompanies.
+            var company = await _context.Companies
+                .Include(c => c.UserCompanies)
+                .FirstOrDefaultAsync(c => c.CompanyId == companyId && c.OwnerId == userId);
+
+            if (company == null)
+            {
+                TempData["ErrorMessage"] = "Company not found or you do not have permission to delete it.";
+                return RedirectToAction("Manage");
+            }
+
+            // Remove related UserCompanies (if cascade delete is not configured).
+            if (company.UserCompanies.Any())
+            {
+                _context.UserCompanies.RemoveRange(company.UserCompanies);
+            }
+
+            // Remove the company.
+            _context.Companies.Remove(company);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Company '{company.CompanyName}' has been deleted successfully.";
+
+            // Retrieve the UserManager service.
+            var userManager = HttpContext.RequestServices.GetService(typeof(UserManager<User>)) as UserManager<User>;
+            if (userManager != null)
+            {
+                // Get the current user.
+                var currentUser = await userManager.GetUserAsync(User);
+                if (currentUser != null && await userManager.IsInRoleAsync(currentUser, "Company Owner"))
+                {
+                    // Remove the "Company Owner" role from the current user.
+                    var removeRoleResult = await userManager.RemoveFromRoleAsync(currentUser, "Company Owner");
+                    if (!removeRoleResult.Succeeded)
+                    {
+                        // Optionally, log or handle the error if role removal fails.
+                        TempData["ErrorMessage"] = "Company deleted, but failed to remove the owner role.";
+                    }
+                }
+            }
+
+            // Redirect to the Home/Index page (adjust if you prefer a different redirect).
+            return RedirectToAction("Index", "Home");
+        }
+
+
+
+        [HttpPost]
         [Authorize(Roles = "Company Owner")]
         public async Task<IActionResult> RemoveWorker(string workerId, Guid companyId)
         {
@@ -279,8 +307,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Worker removed and role reset successfully.";
-            return RedirectToAction("ManageCompany", new { id = companyId });
+            return RedirectToAction("Manage", new { id = companyId });
         }
+
 
 
     }

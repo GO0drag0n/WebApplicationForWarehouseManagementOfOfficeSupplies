@@ -313,6 +313,54 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return RedirectToAction("Manage");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LeaveCompany()
+        {
+            // Get the currently logged-in user.
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "User not found. Please log in again.";
+                return RedirectToAction("Login");
+            }
+
+            // Prevent company owners from leaving using this method.
+            if (await _userManager.IsInRoleAsync(user, "Company Owner"))
+            {
+                TempData["ErrorMessage"] = "Company owners cannot leave the company directly.";
+                return RedirectToAction("Manage");
+            }
+
+            // Find the user's membership record in the company.
+            var userCompany = await _context.UserCompanies.FirstOrDefaultAsync(uc => uc.UserId == user.Id);
+            if (userCompany == null)
+            {
+                TempData["ErrorMessage"] = "You are not a member of any company.";
+                return RedirectToAction("Manage");
+            }
+
+            // Remove the user's membership from the company.
+            _context.UserCompanies.Remove(userCompany);
+            await _context.SaveChangesAsync();
+
+            // Remove the "Company Worker" role if the user is assigned to it.
+            if (await _userManager.IsInRoleAsync(user, "Company Worker"))
+            {
+                var removeRoleResult = await _userManager.RemoveFromRoleAsync(user, "Company Worker");
+                if (!removeRoleResult.Succeeded)
+                {
+                    TempData["ErrorMessage"] = "An error occurred while removing your company worker role.";
+                    return RedirectToAction("Manage");
+                }
+
+                // Refresh the sign-in so that the updated role is reflected in the user's claims.
+                await _signInManager.RefreshSignInAsync(user);
+            }
+
+            TempData["SuccessMessage"] = "You have successfully left the company.";
+            return RedirectToAction("Manage");
+        }
 
 
 

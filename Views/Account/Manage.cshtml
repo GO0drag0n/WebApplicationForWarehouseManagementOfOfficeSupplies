@@ -16,25 +16,21 @@
             <form asp-action="UpdateProfile" method="post" class="p-3 border rounded bg-light">
                 <h4>Update Profile</h4>
                 <hr />
-
                 <div class="form-group mb-3">
                     <label asp-for="FirstName" class="form-label"></label>
                     <input asp-for="FirstName" class="form-control" />
                     <span asp-validation-for="FirstName" class="text-danger"></span>
                 </div>
-
                 <div class="form-group mb-3">
                     <label asp-for="LastName" class="form-label"></label>
                     <input asp-for="LastName" class="form-control" />
                     <span asp-validation-for="LastName" class="text-danger"></span>
                 </div>
-
                 <div class="form-group mb-3">
                     <label asp-for="Email" class="form-label"></label>
                     <input asp-for="Email" class="form-control" />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
-
                 <button type="submit" class="btn btn-primary w-100">Update Profile</button>
             </form>
         </div>
@@ -43,28 +39,23 @@
             <form asp-action="ChangePassword" method="post" class="p-3 border rounded bg-light">
                 <h4>Change Password</h4>
                 <hr />
-
                 <div class="form-group mb-3">
                     <label asp-for="CurrentPassword" class="form-label"></label>
                     <input asp-for="CurrentPassword" class="form-control" type="password" />
                     <span asp-validation-for="CurrentPassword" class="text-danger"></span>
                 </div>
-
                 <div class="form-group mb-3">
                     <label asp-for="NewPassword" class="form-label"></label>
                     <input asp-for="NewPassword" class="form-control" type="password" />
                     <span asp-validation-for="NewPassword" class="text-danger"></span>
                 </div>
-
                 <div class="form-group mb-3">
                     <label asp-for="ConfirmPassword" class="form-label"></label>
                     <input asp-for="ConfirmPassword" class="form-control" type="password" />
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
-
                 <button type="submit" class="btn btn-secondary w-100">Change Password</button>
             </form>
-
         </div>
 
         <div class="col-md-6">
@@ -83,7 +74,6 @@
                     <p><strong>Company Name:</strong> @Model.CompanyName</p>
                     <hr />
                     <a asp-controller="Company" asp-action="Manage" asp-route-id="@Model.CompanyId" class="btn btn-primary w-100 mb-2">Manage Company</a>
-
                     <a id="inviteWorkerButton" data-company-id="@Model.CompanyId" class="btn btn-secondary w-100 mb-2">Invite Worker</a>
                     <a asp-controller="Company" asp-action="Leave" asp-route-id="@Model.CompanyId" class="btn btn-danger w-100">Leave Company</a>
                 </div>
@@ -94,7 +84,10 @@
                     <h4>Your Company</h4>
                     <p><strong>Company Name:</strong> @Model.CompanyName</p>
                     <hr />
-                    <a asp-controller="Company" asp-action="Leave" asp-route-id="@Model.CompanyId" class="btn btn-danger w-100">Leave Company</a>
+                    <!-- The button below triggers the confirmation modal -->
+                    <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#leaveCompanyModal">
+                        Leave Company
+                    </button>
                 </div>
             }
             else
@@ -114,6 +107,7 @@
     </div>
 </div>
 
+<!-- Invite Worker Modal -->
 <div class="modal fade" id="inviteWorkerModal" tabindex="-1" aria-labelledby="inviteWorkerModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -127,6 +121,28 @@
             <div class="modal-footer">
                 <button id="copyCompanyCodeButton" class="btn btn-primary">Copy Code</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leave Company Confirmation Modal -->
+<div class="modal fade" id="leaveCompanyModal" tabindex="-1" aria-labelledby="leaveCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leaveCompanyModalLabel">Confirm Leave Company</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to leave the company? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-controller="Account" asp-action="LeaveCompany" method="post" class="m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Yes, Leave Company</button>
+                </form>
             </div>
         </div>
     </div>
@@ -156,7 +172,6 @@
                 })
                 .then(data => {
                     console.log("Response Data:", data); // Debugging output
-                    // Improved formatting
                     currentCompanyCode = data.companyId; // Save for copying
                     modalBody.innerHTML = `The company code for "<strong>${data.companyName}</strong>" is:<br><strong>${data.companyId}</strong>`;
                     modal.show();
@@ -164,14 +179,14 @@
                 .catch(error => {
                     modalBody.textContent = "An error occurred while fetching the company code.";
                     modal.show();
-                    console.error("Error fetching company code:", error); // Debugging output
+                    console.error("Error fetching company code:", error);
                 });
         });
 
         copyButton.addEventListener('click', function () {
             if (currentCompanyCode) {
                 navigator.clipboard.writeText(currentCompanyCode).then(() => {
-                    
+
                 }).catch(err => {
                     alert('Failed to copy company code. Please try again.');
                     console.error('Copy error:', err);
@@ -179,7 +194,4 @@
             }
         });
     });
-
-
-
 </script>
