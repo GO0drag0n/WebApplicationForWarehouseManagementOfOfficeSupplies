@@ -1,51 +1,103 @@
 ﻿@model IEnumerable<WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Request>
 
-<div class="d-flex flex-column" >
-    <h2 class="text-center">Pending Orders</h2>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <!-- Header Card -->
+            <div class="card shadow border-0 rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="card-title fw-bold text-primary mb-0">
+                                <i class="bi bi-hourglass-split me-2"></i>Pending Orders
+                            </h3>
+                            <p class="text-muted mt-1 mb-0">Manage and process customer order requests</p>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">@Model.Count() orders</span>
+                    </div>
+                </div>
+            </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Request ID</th>
-                <th>Requested By</th>
-                <th>Products</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var request in Model)
-            {
-                <tr>
-                    <td>@request.RequestID</td>
-                    <td>@request.User.FirstName @request.User.LastName</td>
-                    <td>
-                        <ul>
-                            @foreach (var product in request.RequestProducts)
-                            {
-                                <li>@product.ProductBrand @product.ProductModel </li>
-                                
-                            }
-                        </ul>
-                    </td>
-                    <td>
-                        <ul>
-                            @foreach (var product in request.RequestProducts)
-                            {
-                                <li>@product.Quantity pcs.</li>
-
-                            }
-                        </ul>
-                    </td>
-                    <td>@request.Status</td>
-                    <td>
-                        <a asp-controller="PendingOrders" asp-action="Details" asp-route-id="@request.RequestID" class="btn btn-primary ">Details</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
+            <!-- Orders Table Card -->
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Request ID</th>
+                                    <th>Requested By</th>
+                                    <th>Products</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var request in Model)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-bold">#@request.RequestID</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-person-circle text-muted me-2"></i>
+                                                    @request.User.FirstName @request.User.LastName
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    @foreach (var product in request.RequestProducts.Take(2))
+                                                    {
+                                                        <div class="mb-1">
+                                                            <span class="badge bg-secondary bg-opacity-10 text-secondary me-2">
+                                                                @product.Quantity
+                                                            </span>
+                                                            @product.ProductBrand @product.ProductModel
+                                                        </div>
+                                                    }
+                                                    @if (request.RequestProducts.Count() > 2)
+                                                    {
+                                                        <small class="text-muted">
+                                                            + @(request.RequestProducts.Count() - 2) more items
+                                                        </small>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@(request.Status == "Pending" ? "warning text-dark" :
+                                                                      request.Status == "Rejected" ? "danger" :
+                                                                      request.Status == "Confirmed" ? "info" :
+                                                                      request.Status == "Sent" ? "success" : "secondary") px-3 py-2">
+                                                    @request.Status
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <a asp-controller="PendingOrders" asp-action="Details" asp-route-id="@request.RequestID"
+                                                   class="btn btn-outline-primary">
+                                                    <i class="bi bi-eye me-1"></i>View Details
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                                                <p class="mt-2 mb-0">No pending orders found.</p>
+                                                <p class="text-muted small">All orders have been processed or no new orders have been placed.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
