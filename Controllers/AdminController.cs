@@ -181,4 +181,28 @@ public class AdminController : Controller
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(ManageCategories));
     }
+
+    [HttpPost]
+    public IActionResult Create(Category category) 
+    {
+        if (category == null || string.IsNullOrWhiteSpace(category.Name))
+        {
+            return BadRequest("Category name cannot be empty.");
+        }
+
+        try
+        {
+            // Save the new category
+            _context.Categories.Add(category);
+            _context.SaveChanges();
+
+            return RedirectToAction(nameof(ManageCategories));
+
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
 }
