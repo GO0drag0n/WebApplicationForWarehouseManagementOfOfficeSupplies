@@ -54,7 +54,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 CompanyPhone = request.Company?.CompanyPhone,
                 UserName = request.User?.UserName,
                 CreatedAt = request.CreatedAt, // Include order date
-                TotalPrice = request.TotalPrice, // Include total price
+                TotalPrice = request.TotalPrice,
+                VATNumber = request.Company?.VATNumber,
+                QuarterOrderValue = request.Company?.QuarterOrderValue ?? 0,
+                DiscountLevel = request.Company?.DiscountLevel ?? 0,
                 RequestProducts = request.RequestProducts?.Select(p => new ProductViewModel
                 {
                     ProductID = p.ProductID,
