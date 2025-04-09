@@ -30,13 +30,12 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View("CreateCompany"); // Explicitly specify the view name
         }
 
-        // POST: Company/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CompanyCreateViewModel model,
-                                                [FromServices] UserManager<User> userManager,
-                                                [FromServices] RoleManager<IdentityRole> roleManager,
-                                                [FromServices] SignInManager<User> signInManager)
+        public async Task<IActionResult> CreateCompany(CompanyCreateViewModel model,
+                                                    [FromServices] UserManager<User> userManager,
+                                                    [FromServices] RoleManager<IdentityRole> roleManager,
+                                                    [FromServices] SignInManager<User> signInManager)
         {
             if (ModelState.IsValid)
             {
@@ -72,13 +71,14 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     await signInManager.RefreshSignInAsync(user);
                 }
 
-                // Create the company
+                // Create the company and include the VATNumber field
                 var company = new Company
                 {
                     CompanyName = model.CompanyName,
                     CompanyAddress = model.CompanyAddress,
                     CompanyPhone = model.CompanyPhone,
-                    OwnerId = userId // Set the OwnerId to the current user
+                    OwnerId = userId, // Set the OwnerId to the current user
+                    VATNumber = model.VATNumber
                 };
 
                 _context.Companies.Add(company);
@@ -170,7 +170,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             var company = await _context.Companies
                 .Include(c => c.UserCompanies)
-                .ThenInclude(uc => uc.User)
+                    .ThenInclude(uc => uc.User)
                 .FirstOrDefaultAsync(c => c.OwnerId == userId);
 
             if (company == null)
@@ -184,13 +184,17 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 CompanyName = company.CompanyName,
                 Address = company.CompanyAddress,
                 PhoneNumber = company.CompanyPhone,
+                VATNumber = company.VATNumber,               // Map the VAT Number from the database
+                DiscountLevel = company.DiscountLevel,         // Map the Discount Level (read-only display)
+                QuarterOrderValue = company.QuarterOrderValue, // Map the Quarter Order Value (read-only display)
                 Workers = company.UserCompanies
                     .Select(uc => new WorkerViewModel
                     {
                         WorkerId = uc.User.Id,
                         Name = uc.User.UserName,
                         Email = uc.User.Email
-                    }).ToList()
+                    })
+                    .ToList()
             };
 
             return View("ManageCompany", model);
@@ -214,6 +218,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             company.CompanyAddress = model.Address;
             company.CompanyPhone = model.PhoneNumber;
+            company.VATNumber = model.VATNumber;
 
             _context.Companies.Update(company);
             await _context.SaveChangesAsync();

@@ -1,6 +1,6 @@
 ﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.ViewModels.CompanyCreateViewModel
 
-<form asp-action="Create" method="post">
+<form asp-action="CreateCompany" method="post">
     <div class="form-group">
         <label asp-for="CompanyName"></label>
         <input asp-for="CompanyName" class="form-control" />
@@ -15,6 +15,11 @@
         <label asp-for="CompanyPhone"></label>
         <input asp-for="CompanyPhone" class="form-control" />
         <span asp-validation-for="CompanyPhone" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="VATNumber"></label>
+        <input asp-for="VATNumber" class="form-control" />
+        <span asp-validation-for="VATNumber" class="text-danger"></span>
     </div>
     <button type="submit" class="btn btn-primary">Create</button>
 </form>

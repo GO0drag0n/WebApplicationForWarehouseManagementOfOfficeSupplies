@@ -16,5 +16,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.ViewModels
         [StringLength(100, ErrorMessage = "Company Phone cannot exceed 100 characters.")]
         [Phone(ErrorMessage = "Please enter a valid phone number.")]
         public string CompanyPhone { get; set; }
+
+        [Required(ErrorMessage = "VAT Number is required.")]
+        [StringLength(50, ErrorMessage = "VAT Number cannot exceed 50 characters.")]
+        public string VATNumber { get; set; }
     }
 }

@@ -41,11 +41,61 @@
                             </div>
                         </div>
 
-                        <!-- Added VAT Number Field -->
-                        <div class="mb-3">
+                        <!-- VAT Number Field (Editable) -->
+                        <div class="mb-4">
                             <div class="form-floating">
-                                <input class="form-control" placeholder="VAT Number" />
-                                <label>VAT Number</label>
+                                <input asp-for="VATNumber" class="form-control" placeholder="VAT Number" />
+                                <label asp-for="VATNumber">VAT Number</label>
+                                <span asp-validation-for="VATNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Business Metrics Section -->
+                        <div class="mb-4">
+                            <h5 class="text-muted mb-3">Business Metrics</h5>
+                            <div class="row g-3">
+                                <!-- Discount Level Card -->
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 bg-light">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-tag-fill text-primary me-2 fs-4"></i>
+                                                <h6 class="card-subtitle text-muted mb-0">Discount Level</h6>
+                                            </div>
+                                            <div class="d-flex align-items-center mt-3">
+                                                <h3 class="mb-0">@Model.DiscountLevel</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quarter Order Value Card -->
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 bg-light">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-graph-up-arrow text-primary me-2 fs-4"></i>
+                                                <h6 class="card-subtitle text-muted mb-0">Quarter Order Value</h6>
+                                            </div>
+                                            <div class="d-flex align-items-center mt-3">
+                                                <h3 class="mb-0">
+                                                    @{
+                                                        // Format as currency if it's a number
+                                                        decimal orderValue;
+                                                        if (decimal.TryParse(Model.QuarterOrderValue.ToString(), out orderValue))
+                                                        {
+                                                            @orderValue.ToString("C")
+                                                        }
+                                                        else
+                                                        {
+                                                            @Model.QuarterOrderValue
+                                                        }
+                                                    }
+                                                </h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -87,7 +137,6 @@
                                             <td class="ps-4">@worker.Name</td>
                                             <td>@worker.Email</td>
                                             <td class="text-end pe-4">
-                                                <!-- Remove button includes data attributes for worker id and name -->
                                                 <button type="button" class="btn btn-sm btn-outline-danger"
                                                         data-bs-toggle="modal" data-bs-target="#removeWorkerModal"
                                                         data-workerid="@worker.WorkerId" data-workername="@worker.Name">
@@ -136,7 +185,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- Simplified Add Worker Modal -->
 <div class="modal fade" id="addWorkerModal" tabindex="-1" aria-labelledby="addWorkerModalLabel" aria-hidden="true">
@@ -191,20 +239,13 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // Listen for when the removeWorkerModal is about to be shown
         var removeWorkerModal = document.getElementById('removeWorkerModal');
         removeWorkerModal.addEventListener('show.bs.modal', function (event) {
-            // Button that triggered the modal
             var button = event.relatedTarget;
-            // Extract info from data-* attributes
             var workerId = button.getAttribute('data-workerid');
             var workerName = button.getAttribute('data-workername');
-
-            // Update the modal's content.
             var modalWorkerNameElement = removeWorkerModal.querySelector('#workerNameToRemove');
             modalWorkerNameElement.textContent = workerName;
-
-            // Set the workerId in the modal's hidden input
             var workerIdInput = removeWorkerModal.querySelector('#removeWorkerId');
             workerIdInput.value = workerId;
         });
