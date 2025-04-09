@@ -24,5 +24,12 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
         [ForeignKey("OwnerId")]
         public virtual User Owner { get; set; }
         public ICollection<UserCompany> UserCompanies { get; set; }
+        [Required]
+        [StringLength(50)] 
+        public string VATNumber { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal QuarterOrderValue { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal DiscountLevel { get; set; }
     }
 }
