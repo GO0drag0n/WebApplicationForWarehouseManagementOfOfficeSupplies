@@ -56,8 +56,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 CreatedAt = request.CreatedAt, // Include order date
                 TotalPrice = request.TotalPrice,
                 VATNumber = request.Company?.VATNumber,
-                QuarterOrderValue = request.Company?.QuarterOrderValue ?? 0,
-                DiscountLevel = request.Company?.DiscountLevel ?? 0,
+                DiscountLevel = request.Company.DiscountLevel,
                 RequestProducts = request.RequestProducts?.Select(p => new ProductViewModel
                 {
                     ProductID = p.ProductID,
