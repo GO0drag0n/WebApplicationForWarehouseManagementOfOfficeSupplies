@@ -184,9 +184,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 CompanyName = company.CompanyName,
                 Address = company.CompanyAddress,
                 PhoneNumber = company.CompanyPhone,
-                VATNumber = company.VATNumber,               // Map the VAT Number from the database
-                DiscountLevel = company.DiscountLevel,         // Map the Discount Level (read-only display)
-                QuarterOrderValue = company.QuarterOrderValue, // Map the Quarter Order Value (read-only display)
+                VATNumber = company.VATNumber,               
+                DiscountLevel = company.DiscountLevel,         
+                QuarterOrderValue = company.QuarterOrderValue, 
                 Workers = company.UserCompanies
                     .Select(uc => new WorkerViewModel
                     {
@@ -197,8 +197,23 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     .ToList()
             };
 
+
+            model.OrderStats = await _context.RequestProducts
+                .Where(rp => rp.Request.CompanyId == company.CompanyId && rp.Request.FinishedOrderDate != null)
+                .Include(rp => rp.Product)
+                .GroupBy(rp => new { rp.ProductID, Brand = rp.Product.Brand, Model = rp.Product.Model })
+                .Select(g => new CompanyProductStatViewModel
+                {
+                    ProductID = g.Key.ProductID,
+                    ProductBrand = g.Key.Brand,
+                    ProductModel = g.Key.Model,
+                    TotalOrderedQuantity = g.Sum(x => x.Quantity)
+                })
+                .ToListAsync();
+
             return View("ManageCompany", model);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

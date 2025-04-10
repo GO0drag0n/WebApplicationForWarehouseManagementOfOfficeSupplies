@@ -8,7 +8,6 @@ using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 {
-    
     public class PendingOrdersController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -17,6 +16,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         {
             _context = context;
         }
+
         [Authorize(Roles = "Admin,Storage Worker")]
         // GET: PendingOrders
         public IActionResult Pending()
@@ -24,8 +24,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             var pendingRequests = _context.Requests
                 .Include(r => r.User)
                 .Include(r => r.RequestProducts)
-                .ThenInclude(rp => rp.Product)
-                .Where(r => r.Status != "Sent")
+                    .ThenInclude(rp => rp.Product)
+                // Exclude finished orders by ensuring FinishedOrderDate is null
+                .Where(r => r.Status != "Sent" && r.FinishedOrderDate == null)
                 .ToList();
 
             return View(pendingRequests);
@@ -36,7 +37,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             var request = await _context.Requests
                 .Include(r => r.Company)
                 .Include(r => r.RequestProducts)
-                .ThenInclude(rp => rp.Product)
+                    .ThenInclude(rp => rp.Product)
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.RequestID == id);
 
@@ -53,7 +54,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 CompanyAddress = request.Company?.CompanyAddress,
                 CompanyPhone = request.Company?.CompanyPhone,
                 UserName = request.User?.UserName,
-                CreatedAt = request.CreatedAt, // Include order date
+                CreatedAt = request.CreatedAt,
                 TotalPrice = request.TotalPrice,
                 VATNumber = request.Company?.VATNumber,
                 DiscountLevel = request.Company.DiscountLevel,
@@ -71,7 +72,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(viewModel);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int requestId, string newStatus)
@@ -86,7 +86,17 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             // Update the status
             request.Status = newStatus;
 
-            // Save changes
+            // If the new status indicates that the order is finished, set the FinishedOrderDate.
+            if (newStatus == "Delivered" || newStatus == "Finished")
+            {
+                request.FinishedOrderDate = DateTime.UtcNow;
+            }
+            else
+            {
+                // Optionally, reset FinishedOrderDate if the status reverts to a non-finished state.
+                request.FinishedOrderDate = null;
+            }
+
             _context.Requests.Update(request);
             await _context.SaveChangesAsync();
 
@@ -115,8 +125,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             var pendingRequests = await _context.Requests
                 .Include(r => r.User)
                 .Include(r => r.RequestProducts)
-                .ThenInclude(rp => rp.Product)
-                .Where(r => r.CompanyId == company.CompanyId)
+                    .ThenInclude(rp => rp.Product)
+                // Only pending orders (no FinishedOrderDate)
+                .Where(r => r.CompanyId == company.CompanyId && r.FinishedOrderDate == null)
                 .ToListAsync();
 
             return View(pendingRequests);
@@ -133,7 +144,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             var request = await _context.Requests
                 .Include(r => r.Company)
                 .Include(r => r.RequestProducts)
-                .ThenInclude(rp => rp.Product)
+                    .ThenInclude(rp => rp.Product)
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.RequestID == id);
 
@@ -159,8 +170,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 CompanyAddress = request.Company?.CompanyAddress,
                 CompanyPhone = request.Company?.CompanyPhone,
                 UserName = request.User?.UserName,
-                CreatedAt = request.CreatedAt, // Include created date
-                TotalPrice = request.TotalPrice, // Include total price
+                CreatedAt = request.CreatedAt,
+                TotalPrice = request.TotalPrice,
                 RequestProducts = request.RequestProducts?.Select(p => new ProductViewModel
                 {
                     ProductID = p.ProductID,
@@ -175,7 +186,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(viewModel);
         }
 
-
         [Authorize(Roles = "Company Owner,Company Worker")]
         public async Task<IActionResult> CancelOrder(int id)
         {
@@ -189,7 +199,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             var request = await _context.Requests
                 .Include(r => r.Company)
                 .Include(r => r.RequestProducts)
-                .ThenInclude(rp => rp.Product)
+                    .ThenInclude(rp => rp.Product)
                 .FirstOrDefaultAsync(r => r.RequestID == id);
 
             if (request == null)
@@ -207,7 +217,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return Forbid();
             }
 
-            // Ensure the order is still pending before deleting
+            // Ensure the order is still pending before canceling
             if (request.Status != "Pending")
             {
                 TempData["ErrorMessage"] = "Only pending orders can be canceled.";
@@ -220,20 +230,18 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 var product = requestProduct.Product;
                 if (product != null)
                 {
-                    product.Quantity += requestProduct.Quantity; // Restore the ordered quantity
+                    product.Quantity += requestProduct.Quantity;
                     _context.Products.Update(product);
                 }
             }
 
-            // Remove the order from the database
             _context.Requests.Remove(request);
-
-            // Save changes
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Order has been successfully canceled, and product stock has been restored.";
             return RedirectToAction("CompanyPendingOrders");
         }
+
         [Authorize(Roles = "Company Owner,Company Worker")]
         public async Task<IActionResult> ConfirmDelivery(int id)
         {
@@ -270,15 +278,16 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return RedirectToAction("CompanyOrderDetails", new { id });
             }
 
-            // Remove the order from the database
-            _context.Requests.Remove(request);
+            // Update the order status to delivered and set FinishedOrderDate
+            request.Status = "Delivered";
+            request.FinishedOrderDate = DateTime.UtcNow;
+
+            _context.Requests.Update(request);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Order has been successfully confirmed and removed.";
+            TempData["SuccessMessage"] = "Order has been successfully confirmed and marked as delivered.";
             return RedirectToAction("CompanyPendingOrders");
         }
-
-
-
     }
+
 }

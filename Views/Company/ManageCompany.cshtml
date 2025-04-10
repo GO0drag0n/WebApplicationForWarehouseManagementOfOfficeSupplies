@@ -7,6 +7,7 @@
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
+
             <!-- Company Info Card -->
             <div class="card shadow border-0 rounded-3 mb-4">
                 <div class="card-header bg-white p-4 border-bottom-0">
@@ -41,7 +42,6 @@
                             </div>
                         </div>
 
-                        <!-- VAT Number Field (Editable) -->
                         <div class="mb-4">
                             <div class="form-floating">
                                 <input asp-for="VATNumber" class="form-control" placeholder="VAT Number" />
@@ -50,11 +50,10 @@
                             </div>
                         </div>
 
-                        <!-- Business Metrics Section -->
+                        <!-- Business Metrics -->
                         <div class="mb-4">
                             <h5 class="text-muted mb-3">Business Metrics</h5>
                             <div class="row g-3">
-                                <!-- Discount Level Card -->
                                 <div class="col-md-6">
                                     <div class="card h-100 border-0 bg-light">
                                         <div class="card-body">
@@ -69,7 +68,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Quarter Order Value Card -->
                                 <div class="col-md-6">
                                     <div class="card h-100 border-0 bg-light">
                                         <div class="card-body">
@@ -80,7 +78,6 @@
                                             <div class="d-flex align-items-center mt-3">
                                                 <h3 class="mb-0">
                                                     @{
-                                                        // Format as currency if it's a number
                                                         decimal orderValue;
                                                         if (decimal.TryParse(Model.QuarterOrderValue.ToString(), out orderValue))
                                                         {
@@ -108,6 +105,69 @@
                 </div>
             </div>
 
+            <!-- Improved Order Statistics Card -->
+            <div class="card shadow border-0 rounded-3 mb-4">
+                <div class="card-header bg-white p-4 border-bottom-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="card-title fw-bold mb-0">
+                                <i class="bi bi-bar-chart-fill me-2 text-primary"></i>Order Statistics
+                            </h3>
+                            <p class="text-muted mt-1 mb-0">Most ordered products by quantity</p>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary active" id="viewBarChart">
+                                <i class="bi bi-bar-chart"></i> Chart
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="viewTable">
+                                <i class="bi bi-table"></i> Table
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Chart Container -->
+                    <div id="chartContainer">
+                        <canvas id="orderStatisticsChart" height="300"></canvas>
+                    </div>
+
+                    <!-- Table View (initially hidden) -->
+                    <div id="tableContainer" class="d-none">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th class="text-end">Quantity</th>
+                                        <th class="text-end">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statsTableBody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- No Data Message (shown if no data) -->
+                    <div id="noDataMessage" class="text-center py-5 d-none">
+                        <i class="bi bi-bar-chart text-muted" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">No order statistics available.</p>
+                        <p class="text-muted small">Statistics will appear once orders have been placed.</p>
+                    </div>
+                </div>
+                <div class="card-footer bg-white p-3 border-top-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Total of: <span id="totalOrdersCount">0</span> pcs.</small>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="downloadChartBtn">
+                                <i class="bi bi-download me-1"></i>Download Chart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Company Workers Card -->
             <div class="card shadow border-0 rounded-3">
                 <div class="card-header bg-white p-4 border-bottom-0">
@@ -131,7 +191,7 @@
                             <tbody>
                                 @if (Model.Workers.Any())
                                 {
-                                    @foreach (var worker in Model.Workers)
+                                    foreach (var worker in Model.Workers)
                                     {
                                         <tr>
                                             <td class="ps-4">@worker.Name</td>
@@ -157,6 +217,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
@@ -186,7 +247,7 @@
     </div>
 </div>
 
-<!-- Simplified Add Worker Modal -->
+<!-- Add Worker Modal -->
 <div class="modal fade" id="addWorkerModal" tabindex="-1" aria-labelledby="addWorkerModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -210,7 +271,7 @@
     </div>
 </div>
 
-<!-- Custom Remove Worker Modal -->
+<!-- Remove Worker Modal -->
 <div class="modal fade" id="removeWorkerModal" tabindex="-1" aria-labelledby="removeWorkerModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -238,7 +299,183 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <!-- Include Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Build arrays for chart labels and data from the OrderStats in the model
+            var orderStatsLabels = [];
+            var orderStatsData = [];
+            var totalOrders = 0;
+            var chartColors = [
+                'rgba(54, 162, 235, 0.7)',   // Blue
+                'rgba(255, 99, 132, 0.7)',   // Red
+                'rgba(75, 192, 192, 0.7)',   // Green
+                'rgba(255, 159, 64, 0.7)',   // Orange
+                'rgba(153, 102, 255, 0.7)',  // Purple
+                'rgba(255, 205, 86, 0.7)',   // Yellow
+                'rgba(201, 203, 207, 0.7)'   // Grey
+            ];
+            var borderColors = [
+                'rgb(54, 162, 235)',
+                'rgb(255, 99, 132)',
+                'rgb(75, 192, 192)',
+                'rgb(255, 159, 64)',
+                'rgb(153, 102, 255)',
+                'rgb(255, 205, 86)',
+                'rgb(201, 203, 207)'
+            ];
+
+        @foreach (var stat in Model.OrderStats)
+        {
+            @:orderStatsLabels.push("@(stat.ProductBrand) @(stat.ProductModel)");
+            @:orderStatsData.push(@stat.TotalOrderedQuantity);
+            @:totalOrders += @stat.TotalOrderedQuantity;
+        }
+
+                // Update total orders count
+                document.getElementById("totalOrdersCount").textContent = totalOrders;
+
+            // Show no data message if no data
+            if (orderStatsLabels.length === 0) {
+                document.getElementById("chartContainer").classList.add("d-none");
+                document.getElementById("tableContainer").classList.add("d-none");
+                document.getElementById("noDataMessage").classList.remove("d-none");
+                return;
+            }
+
+            // Populate the table view
+            populateStatsTable(orderStatsLabels, orderStatsData, totalOrders);
+
+            // Get the canvas element context
+            var ctx = document.getElementById("orderStatisticsChart").getContext("2d");
+
+            // Create background colors array based on data length
+            var backgroundColors = [];
+            var borderColorsArray = [];
+            for (var i = 0; i < orderStatsData.length; i++) {
+                backgroundColors.push(chartColors[i % chartColors.length]);
+                borderColorsArray.push(borderColors[i % borderColors.length]);
+            }
+
+            // Initialize the Chart.js chart
+            var orderChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: orderStatsLabels,
+                    datasets: [{
+                        label: 'Total Ordered Quantity',
+                        data: orderStatsData,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColorsArray,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function (context) {
+                                    var percentage = (context.raw / totalOrders * 100).toFixed(1);
+                                    return percentage + '% of total orders';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Quantity Ordered'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+
+            // View toggle buttons
+            document.getElementById("viewBarChart").addEventListener("click", function () {
+                setActiveButton(this);
+                document.getElementById("chartContainer").classList.remove("d-none");
+                document.getElementById("tableContainer").classList.add("d-none");
+            });
+
+            document.getElementById("viewTable").addEventListener("click", function () {
+                setActiveButton(this);
+                document.getElementById("chartContainer").classList.add("d-none");
+                document.getElementById("tableContainer").classList.remove("d-none");
+            });
+
+            // Helper function to set active button
+            function setActiveButton(button) {
+                document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+            }
+
+            // Populate stats table
+            function populateStatsTable(labels, data, total) {
+                var tableBody = document.getElementById("statsTableBody");
+                tableBody.innerHTML = '';
+
+                // Create a sorted copy of the data for the table
+                var sortedData = [];
+                for (var i = 0; i < labels.length; i++) {
+                    sortedData.push({
+                        label: labels[i],
+                        value: data[i],
+                        percentage: (data[i] / total * 100).toFixed(1)
+                    });
+                }
+
+                // Sort by value descending
+                sortedData.sort((a, b) => b.value - a.value);
+
+                // Add rows to table
+                sortedData.forEach(item => {
+                    var row = document.createElement('tr');
+                    row.innerHTML = `
+                                <td>${item.label}</td>
+                                <td class="text-end">${item.value}</td>
+                                <td class="text-end">
+                                    <div class="d-flex align-items-center justify-content-end">
+                                        <div class="progress me-2" style="width: 100px; height: 8px;">
+                                            <div class="progress-bar bg-primary" style="width: ${item.percentage}%"></div>
+                                        </div>
+                                        ${item.percentage}%
+                                    </div>
+                                </td>
+                            `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            // Download chart as image
+            document.getElementById("downloadChartBtn").addEventListener("click", function () {
+                var link = document.createElement('a');
+                link.href = orderChart.toBase64Image();
+                link.download = 'order-statistics.png';
+                link.click();
+            });
+        });
+
+        // Remove Worker Modal Script
         var removeWorkerModal = document.getElementById('removeWorkerModal');
         removeWorkerModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
