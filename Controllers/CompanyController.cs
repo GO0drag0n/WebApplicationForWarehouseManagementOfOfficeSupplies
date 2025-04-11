@@ -330,7 +330,28 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return RedirectToAction("Manage", new { id = companyId });
         }
 
+        [Authorize(Roles = "Company Owner,Company Worker")]
+        public async Task<IActionResult> OrderHistory()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
 
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.OwnerId == userId);
+            if (company == null)
+            {
+                return NotFound("No company found for the logged-in owner.");
+            }
+
+            var orders = await _context.Requests
+                                .Where(r => r.CompanyId == company.CompanyId)
+                                .OrderByDescending(r => r.CreatedAt)
+                                .ToListAsync();
+
+            return View(orders);
+        }
 
     }
 }
