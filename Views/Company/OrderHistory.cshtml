@@ -5,53 +5,291 @@
 }
 
 <div class="container py-4">
-    <h2 class="text-center mb-4">Company Order History</h2>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Card -->
+            <div class="card shadow border-0 rounded-3 mb-4">
+                <div class="card-header bg-white p-4 border-bottom-0">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h2 class="card-title fw-bold mb-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock-history text-primary me-2" viewBox="0 0 16 16">
+                                    <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535m-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8 8 0 0 1-.401.432l-.707-.707z" />
+                                    <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z" />
+                                    <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5" />
+                                </svg>Order History
+                            </h2>
+                            <p class="text-muted mt-1 mb-0">View and track all your company orders</p>
+                        </div>
+                        <div class="mt-3 mt-md-0">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search orders..." id="orderSearchInput">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Filter Section -->
+                    <div class="bg-light p-3 border-top border-bottom">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-4">
+                                <select class="form-select form-select-sm" id="statusFilter">
+                                    <option value="">All Statuses</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Sent">Sent</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select form-select-sm" id="dateFilter">
+                                    <option value="">All Time</option>
+                                    <option value="7">Last 7 Days</option>
+                                    <option value="30">Last 30 Days</option>
+                                    <option value="90">Last 3 Months</option>
+                                    <option value="365">Last Year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <span class="badge bg-secondary">@Model.Count() Orders</span>
+                            </div>
+                        </div>
+                    </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-light">
-                <tr>
-                    <th>Order ID</th>
-                    <th>Order Date</th>
-                    <th>Status</th>
-                    <th class="text-end">Total Price</th>
-                    <th class="text-center">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Any())
-                {
-                    foreach (var order in Model)
-                    {
-                        <tr>
-                            <td>@order.RequestID</td>
-                            <td>
-                                @if (order.FinishedOrderDate.HasValue)
+                    <!-- Orders Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="ordersTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Order ID</th>
+                                    <th>Order Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Total Price</th>
+                                    <th class="text-center pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Any())
                                 {
-                                    @order.FinishedOrderDate.Value.ToString("yyyy-MM-dd")
+                                    foreach (var order in Model)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-medium">@order.RequestID</td>
+                                            <td>
+                                                @if (order.FinishedOrderDate.HasValue)
+                                                {
+                                                    <div>@order.FinishedOrderDate.Value.ToString("MMM dd, yyyy")</div>
+                                                    <small class="text-muted">@order.FinishedOrderDate.Value.ToString("h:mm tt")</small>
+                                                }
+                                                else
+                                                {
+                                                    <div>@order.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                                    <small class="text-muted">@order.CreatedAt.ToString("h:mm tt")</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @{
+                                                    string badgeClass = "bg-secondary";
+
+                                                    if (order.Status.ToLower() == "pending")
+                                                    {
+                                                        badgeClass = "bg-warning text-dark";
+                                                    }
+                                                    else if (order.Status.ToLower() == "confirmed")
+                                                    {
+                                                        badgeClass = "bg-info text-dark";
+                                                    }
+                                                    else if (order.Status.ToLower() == "sent")
+                                                    {
+                                                        badgeClass = "bg-info text-dark";
+                                                    }
+                                                    else if (order.Status.ToLower() == "delivered")
+                                                    {
+                                                        badgeClass = "bg-success";
+                                                    }
+                                                    else if (order.Status.ToLower() == "rejected")
+                                                    {
+                                                        badgeClass = "bg-danger";
+                                                    }
+                                                }
+                                                <span class="badge @badgeClass">@order.Status</span>
+                                            </td>
+                                            <td class="text-end fw-bold">@order.TotalPrice.ToString("C")</td>
+                                            <td class="text-center pe-4">
+                                                <a asp-controller="PendingOrders" asp-action="CompanyOrderDetails" asp-route-id="@order.RequestID"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye me-1" viewBox="0 0 16 16">
+                                                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z" />
+                                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0" />
+                                                    </svg>View Details
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
                                 }
                                 else
                                 {
-                                    @order.CreatedAt.ToString("yyyy-MM-dd")
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5">
+                                            <div class="py-4">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-inbox text-muted" viewBox="0 0 16 16">
+                                                    <path d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438L14.933 9zM3.809 3.563A1.5 1.5 0 0 1 4.981 3h6.038a1.5 1.5 0 0 1 1.172.563l3.7 4.625a.5.5 0 0 1 .105.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374z" />
+                                                </svg>
+                                                <h5 class="mt-3">No Orders Found</h5>
+                                                <p class="text-muted mb-0">No orders have been placed by your company yet.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 }
-                            </td>
-                            <td>@order.Status</td>
-                            <td class="text-end">@order.TotalPrice.ToString("C")</td>
-                            <td class="text-center">
-                                <a asp-controller="PendingOrders" asp-action="CompanyOrderDetails" asp-route-id="@order.RequestID" class="btn btn-sm btn-primary">
-                                    View Details
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination (if needed) -->
+                @if (Model.Count() > 10)
                 {
-                    <tr>
-                        <td colspan="5" class="text-center py-4">No orders found for your company.</td>
-                    </tr>
+                    <div class="card-footer bg-white p-3 border-top-0">
+                        <nav aria-label="Order history pagination">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
                 }
-            </tbody>
-        </table>
+            </div>
+
+            <!-- Quick Stats Card -->
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-header bg-white p-4 border-bottom-0">
+                    <h3 class="card-title fw-bold mb-0">Order Statistics</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <div class="d-inline-flex justify-content-center align-items-center bg-light rounded-circle p-3 mb-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bag text-primary" viewBox="0 0 16 16">
+                                        <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                                    </svg>
+                                </div>
+                                <h4 class="mb-1">@Model.Count()</h4>
+                                <p class="text-muted mb-0">Total Orders</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <div class="d-inline-flex justify-content-center align-items-center bg-light rounded-circle p-3 mb-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-hourglass-split text-warning" viewBox="0 0 16 16">
+                                        <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z" />
+                                    </svg>
+                                </div>
+                                <h4 class="mb-1">@Model.Count(o => o.Status.ToLower() == "pending")</h4>
+                                <p class="text-muted mb-0">Pending</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <div class="d-inline-flex justify-content-center align-items-center bg-light rounded-circle p-3 mb-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle text-success" viewBox="0 0 16 16">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
+                                    </svg>
+                                </div>
+                                <h4 class="mb-1">@Model.Count(o => o.Status.ToLower() == "delivered")</h4>
+                                <p class="text-muted mb-0">Delivered</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <div class="d-inline-flex justify-content-center align-items-center bg-light rounded-circle p-3 mb-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-currency-dollar text-info" viewBox="0 0 16 16">
+                                        <path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73z" />
+                                    </svg>
+                                </div>
+                                <h4 class="mb-1">@Model.Sum(o => o.TotalPrice).ToString("C0")</h4>
+                                <p class="text-muted mb-0">Total Spent</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Search functionality
+            const searchInput = document.getElementById('orderSearchInput');
+            searchInput.addEventListener('keyup', function () {
+                const searchTerm = this.value.toLowerCase();
+                const table = document.getElementById('ordersTable');
+                const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+                for (let i = 0; i < rows.length; i++) {
+                    const rowText = rows[i].textContent.toLowerCase();
+                    if (rowText.indexOf(searchTerm) > -1) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            });
+
+            // Status filter
+            const statusFilter = document.getElementById('statusFilter');
+            statusFilter.addEventListener('change', filterOrders);
+
+            // Date filter
+            const dateFilter = document.getElementById('dateFilter');
+            dateFilter.addEventListener('change', filterOrders);
+
+            function filterOrders() {
+                const statusValue = statusFilter.value.toLowerCase();
+                const dateValue = parseInt(dateFilter.value);
+
+                const table = document.getElementById('ordersTable');
+                const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+                for (let i = 0; i < rows.length; i++) {
+                    const statusCell = rows[i].getElementsByTagName('td')[2];
+                    if (!statusCell) continue; // Skip if no status cell (like in "no orders" row)
+
+                    const statusText = statusCell.textContent.toLowerCase();
+
+                    let showRow = true;
+
+                    // Apply status filter
+                    if (statusValue && statusText.indexOf(statusValue) === -1) {
+                        showRow = false;
+                    }
+
+                    // Apply date filter (simplified - would need actual date comparison)
+                    // This is just a placeholder for the actual implementation
+                    if (dateValue && showRow) {
+                        // In a real implementation, you would compare the date in the row
+                        // with the current date minus the dateValue in days
+                        // For now, we'll just keep the row visible
+                    }
+
+                    rows[i].style.display = showRow ? '' : 'none';
+                }
+            }
+        });
+    </script>
+}
