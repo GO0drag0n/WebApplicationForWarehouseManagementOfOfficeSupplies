@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
@@ -183,7 +184,7 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    public IActionResult Create(Category category) 
+    public IActionResult Create(Category category)
     {
         if (category == null || string.IsNullOrWhiteSpace(category.Name))
         {
@@ -204,5 +205,99 @@ public class AdminController : Controller
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet]
+    public async Task<IActionResult> OrderHistory()
+    {
+        var orders = await _context.Requests
+            .Include(r => r.Company)
+            .Include(r => r.User)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+
+        return View("OrderHistory", orders);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet]
+    public async Task<IActionResult> OrderStatistics()
+    {
+        var requests = await _context.Requests
+            .Include(r => r.Company)
+            .Where(r => r.CreatedAt != null)
+            .ToListAsync();
+
+        var totalOrders = requests.Count;
+        var deliveredOrders = requests.Count(r => r.Status == "Delivered");
+        var pendingOrders = requests.Count(r => r.Status == "Pending");
+        var rejectedOrders = requests.Count(r => r.Status == "Rejected");
+        var inProgressOrders = requests.Count(r => r.Status == "Pending" || r.Status == "Sent");
+
+        var now = DateTime.UtcNow;
+        var ordersThisWeek = requests.Count(r => r.CreatedAt >= now.AddDays(-7));
+        var ordersThisMonth = requests.Count(r => r.CreatedAt >= now.AddDays(-30));
+        var ordersThisYear = requests.Count(r => r.CreatedAt >= now.AddDays(-365));
+
+        var weeklyTrend = requests
+            .GroupBy(r => r.CreatedAt.Date)  // Group by each unique day
+            .Select(g => new { Week = g.Key, Count = g.Count() })
+            .OrderBy(g => g.Week)
+            .ToList();
+
+
+
+
+        var topCompaniesByOrders = requests
+            .GroupBy(r => r.Company.CompanyName)
+            .Select(g => new CompanyOrderStat
+            {
+                Company = g.Key,
+                Count = g.Count()
+            })
+            .OrderByDescending(g => g.Count)
+            .Take(5)
+            .ToList();
+
+        var topCompaniesBySpending = requests
+            .GroupBy(r => r.Company.CompanyName)
+            .Select(g => new CompanySpendingStat
+            {
+                Company = g.Key,
+                Total = g.Sum(r => r.TotalPrice)
+            })
+            .OrderByDescending(g => g.Total)
+            .Take(5)
+            .ToList();
+
+
+        var fulfillmentTimes = requests
+            .Where(r => r.Status == "Delivered" && r.FinishedOrderDate.HasValue)
+            .Select(r => (r.FinishedOrderDate.Value - r.CreatedAt).TotalDays)
+            .ToList();
+
+        var avgFulfillmentTime = fulfillmentTimes.Any() ? fulfillmentTimes.Average() : 0;
+
+        var model = new AdminOrderStatisticsViewModel
+        {
+            TotalOrders = totalOrders,
+            DeliveredOrders = deliveredOrders,
+            PendingOrders = pendingOrders,
+            RejectedOrders = rejectedOrders,
+            InProgressOrders = inProgressOrders,
+            OrdersThisWeek = ordersThisWeek,
+            OrdersThisMonth = ordersThisMonth,
+            OrdersThisYear = ordersThisYear,
+            WeeklyOrderTrend = weeklyTrend.Select(t => new WeeklyOrderStat { Week = t.Week, OrderCount = t.Count }).ToList(),
+            TopCompaniesByOrders = topCompaniesByOrders,
+            TopCompaniesBySpending = topCompaniesBySpending,
+            AvgFulfillmentTimeDays = Math.Round(avgFulfillmentTime, 1)
+        };
+
+        return View(model);
+    }
+
+
+
 
 }
