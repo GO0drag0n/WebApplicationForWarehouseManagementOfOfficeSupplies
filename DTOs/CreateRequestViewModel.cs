@@ -20,5 +20,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs
         public List<ProductViewModel> RequestProducts { get; set; } = new List<ProductViewModel>();
 
         public List<SelectListItem> Categories { get; set; } = new List<SelectListItem>();
+
+        public int CurrentDiscountLevel { get; set; }
+        public decimal CurrentQuarterOrderValue { get; set; }
     }
 }

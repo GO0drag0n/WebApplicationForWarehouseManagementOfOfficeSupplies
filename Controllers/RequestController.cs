@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
-using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using Microsoft.EntityFrameworkCore;
+using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
+using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
+using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 {
@@ -15,34 +16,34 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
     public class RequestController : Controller
     {
         private readonly ApplicationDbContext _context;
-
-        public RequestController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        public RequestController(ApplicationDbContext context) => _context = context;
 
         // GET: Request/Create
-        public IActionResult Create(string searchTerm = "", int? categoryId = null)
+        public async Task<IActionResult> Create(string searchTerm = "", int? categoryId = null)
         {
-            // Initialize the queryable object
             var query = _context.Products.AsQueryable();
 
-            // Apply filtering for search term
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Include(x => x.RequestProducts).Include(x => x.Category).Where(p => p.Brand.Contains(searchTerm) || p.Model.Contains(searchTerm));
+                query = query
+                    .Include(x => x.RequestProducts)
+                    .Include(x => x.Category)
+                    .Where(p => p.Brand.Contains(searchTerm) || p.Model.Contains(searchTerm));
             }
 
-            // Apply filtering for category ID
             if (categoryId.HasValue)
             {
-                query = query.Include(x => x.RequestProducts).Include(x => x.Category).Where(p => p.CategoryID == categoryId.Value);
+                query = query
+                    .Include(x => x.RequestProducts)
+                    .Include(x => x.Category)
+                    .Where(p => p.CategoryID == categoryId.Value);
             }
 
-            // Execute the filtered query
-            var filteredProducts = query.Include(x => x.RequestProducts).Include(x => x.Category).ToList();
+            var filteredProducts = query
+                .Include(x => x.RequestProducts)
+                .Include(x => x.Category)
+                .ToList();
 
-            // Pass the products and categories to the view model
             var categories = _context.Categories
                 .Select(c => new SelectListItem
                 {
@@ -68,20 +69,33 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 Categories = categories
             };
 
+            // Populate current discount level & QOV for JS
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var company = await _context.Companies
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.OwnerId == userId);
+                if (company != null)
+                {
+                    viewModel.CurrentDiscountLevel = (int)company.DiscountLevel;
+                    viewModel.CurrentQuarterOrderValue = company.QuarterOrderValue;
+                }
+            }
+
             return View(viewModel);
         }
 
-
+        // POST: Request/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateRequestViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                // Reinitialize non-editable fields for redisplay
                 foreach (var product in model.RequestProducts)
                 {
-                    var dbProduct = _context.Products.Include(x => x.RequestProducts).FirstOrDefault(p => p.ProductID == product.ProductID);
+                    var dbProduct = _context.Products.FirstOrDefault(p => p.ProductID == product.ProductID);
                     if (dbProduct != null)
                     {
                         product.ProductBrand = dbProduct.Brand;
@@ -95,77 +109,73 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 }
             }
 
-            // Filter selected products based on quantity > 0
-            var selectedProducts = model.RequestProducts
-                .Where(p => p.ProductQuantity > 0)
-                .ToList();
-
+            var selectedProducts = model.RequestProducts.Where(p => p.ProductQuantity > 0).ToList();
             if (!selectedProducts.Any())
             {
-                ModelState.AddModelError(string.Empty, "You must select at least one product with a quantity greater than 0.");
+                ModelState.AddModelError(string.Empty,
+                    "You must select at least one product with a quantity greater than 0.");
                 return View(model);
             }
 
-            decimal totalPrice = 0m; // Variable to store total order price
-
-            // Validate stock and calculate total price
+            decimal totalPrice = 0m;
             foreach (var product in selectedProducts)
             {
                 var dbProduct = await _context.Products.FirstOrDefaultAsync(p => p.ProductID == product.ProductID);
                 if (dbProduct == null)
                 {
-                    ModelState.AddModelError(string.Empty, $"Product {product.ProductBrand} {product.ProductModel} does not exist.");
+                    ModelState.AddModelError(string.Empty,
+                        $"Product {product.ProductBrand} {product.ProductModel} does not exist.");
                     return View(model);
                 }
-
                 if (product.ProductQuantity > dbProduct.Quantity)
                 {
-                    ModelState.AddModelError(string.Empty, $"Not enough stock for {product.ProductBrand} {product.ProductModel}. Available: {dbProduct.Quantity}, Requested: {product.ProductQuantity}.");
+                    ModelState.AddModelError(string.Empty,
+                        $"Not enough stock for {product.ProductBrand} {product.ProductModel}. " +
+                        $"Available: {dbProduct.Quantity}, Requested: {product.ProductQuantity}.");
                     return View(model);
                 }
 
-                // Deduct stock quantity
                 dbProduct.Quantity -= product.ProductQuantity;
                 _context.Entry(dbProduct).State = EntityState.Modified;
-
-                // Calculate total price
                 totalPrice += product.ProductQuantity * dbProduct.Price;
             }
 
-            // Populate RequestProductBrand and RequestProductModel from the first selected product
-            var firstSelectedProduct = selectedProducts.FirstOrDefault();
-            if (firstSelectedProduct != null)
-            {
-                model.RequestProductBrand = firstSelectedProduct.ProductBrand;
-                model.RequestProductModel = firstSelectedProduct.ProductModel;
-            }
+            var first = selectedProducts.First();
+            model.RequestProductBrand = first.ProductBrand;
+            model.RequestProductModel = first.ProductModel;
 
-            // Get the logged-in user's ID
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            var userIdPost = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdPost))
             {
                 ModelState.AddModelError(string.Empty, "User is not logged in.");
                 return View(model);
             }
 
-            // Fetch the company for the logged-in user
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.OwnerId == userId);
-            if (company == null)
+            var companyPost = await _context.Companies.FirstOrDefaultAsync(c => c.OwnerId == userIdPost);
+            if (companyPost == null)
             {
-                ModelState.AddModelError(string.Empty, "No associated company found for the logged-in user.");
+                ModelState.AddModelError(string.Empty,
+                    "No associated company found for the logged-in user.");
                 return View(model);
             }
 
-            // Create a new request
+            // Discount calculation
+            decimal prospectiveQov = companyPost.QuarterOrderValue + totalPrice;
+            int newLevel = (int)(prospectiveQov / 1000m);
+            newLevel = Math.Min(newLevel, 5);
+            decimal discountPct = newLevel * 0.025m;
+            decimal discountedTotal = totalPrice * (1 - discountPct);
+
+            // Create and save request
             var request = new Request
             {
-                UserID = userId,
+                UserID = userIdPost,
                 Status = model.RequestStatus,
                 Brand = model.RequestProductBrand,
                 Model = model.RequestProductModel,
-                CompanyId = company.CompanyId,
-                CreatedAt = DateTime.UtcNow, // Set the order creation time
-                TotalPrice = totalPrice, // Set the calculated total price
+                CompanyId = companyPost.CompanyId,
+                CreatedAt = DateTime.UtcNow,
+                TotalPrice = discountedTotal,
                 RequestProducts = selectedProducts.Select(p => new RequestProduct
                 {
                     ProductBrand = p.ProductBrand,
@@ -174,21 +184,18 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                     Quantity = p.ProductQuantity,
                     ProductRow = p.ProductRow,
                     ProductSection = p.ProductSection,
-                    UnitPrice = p.ProductPrice // Store the unit price in the request
+                    UnitPrice = p.ProductPrice
                 }).ToList()
             };
 
-            // Add and save the request to the database
             _context.Requests.Add(request);
+            companyPost.QuarterOrderValue = prospectiveQov;
+            companyPost.DiscountLevel = newLevel;
             await _context.SaveChangesAsync();
 
-            // Provide feedback and redirect
-            TempData["SuccessMessage"] = "Request created successfully!";
+            TempData["SuccessMessage"] =
+                $"Request created with {discountPct:P1} discount (level {newLevel})!";
             return RedirectToAction("Create");
         }
-
-
-
-
     }
 }
