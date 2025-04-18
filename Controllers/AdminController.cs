@@ -204,16 +204,28 @@ public class AdminController : Controller
 
     [Authorize(Roles = "Admin")]
     [HttpGet]
-    public async Task<IActionResult> OrderHistory()
+    public async Task<IActionResult> OrderHistory(Guid? companyId)
     {
-        var orders = await _context.Requests
+        var q = _context.Requests
             .Include(r => r.Company)
             .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
+            .AsQueryable();
 
+        if (companyId.HasValue)
+        {
+            q = q.Where(r => r.CompanyId == companyId.Value);
+            ViewBag.CompanyFilterName = await _context.Companies
+                .Where(c => c.CompanyId == companyId.Value)
+                .Select(c => c.CompanyName)
+                .FirstOrDefaultAsync();
+        }
+
+        var orders = await q.ToListAsync();
         return View("OrderHistory", orders);
     }
+
+
 
     [Authorize(Roles = "Admin")]
     [HttpGet]

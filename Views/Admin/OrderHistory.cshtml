@@ -10,6 +10,7 @@
     var rejectedRequests = Model.Count(r => r.Status == "Rejected");
     var deliveredRequests = Model.Count(r => r.Status == "Delivered");
     
+    var preselectedCompany = ViewBag.CompanyFilterName as string ?? "";
     // Get unique companies for filter
     var companies = Model.Select(r => r.Company?.CompanyName).Distinct().Where(c => c != null).OrderBy(c => c).ToList();
     
@@ -137,7 +138,14 @@
                             <option value="">All Companies</option>
                             @foreach (var company in companies)
                             {
-                                <option value="@company">@company</option>
+                                if (company == preselectedCompany)
+                                {
+                                    <option value="@company" selected>@company</option>
+                                }
+                                else
+                                {
+                                    <option value="@company">@company</option>
+                                }
                             }
                         </select>
                     </div>
@@ -355,7 +363,7 @@
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Elements
             const searchInput = document.getElementById('searchInput');
             const companyFilter = document.getElementById('companyFilter');
@@ -368,184 +376,123 @@
             const currentShowing = document.getElementById('currentShowing');
             const sortIcons = document.querySelectorAll('.sort-icon');
             const orderRows = document.querySelectorAll('.order-row');
-            
-            // Apply filters function
+
+            // Pull in the server‑side preselected company as a JS string
+            const preselectedCompany = @System.Text.Json.JsonSerializer.Serialize((string)ViewBag.CompanyFilterName ?? "");
+
             function applyFilters() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const companyTerm = companyFilter.value;
-                const statusTerm = statusFilter.value;
+                let visible = 0;
+                const term = searchInput.value.toLowerCase();
+                const compTerm = companyFilter.value.toLowerCase();
+                const statTerm = statusFilter.value;
                 const dateTerm = dateRangeFilter.value;
-                
-                let visibleCount = 0;
-                
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+
                 orderRows.forEach(row => {
-                    const id = row.getAttribute('data-id').toLowerCase();
-                    const company = row.getAttribute('data-company').toLowerCase();
-                    const user = row.getAttribute('data-user').toLowerCase();
-                    const status = row.getAttribute('data-status');
-                    const date = new Date(row.getAttribute('data-date'));
-                    
-                    // Search filter
-                    const matchesSearch = searchTerm === '' || 
-                                         id.includes(searchTerm) || 
-                                         company.includes(searchTerm) || 
-                                         user.includes(searchTerm);
-                    
-                    // Company filter
-                    const matchesCompany = companyTerm === '' || 
-                                          company === companyTerm.toLowerCase();
-                    
-                    // Status filter
-                    const matchesStatus = statusTerm === '' || 
-                                         status === statusTerm;
-                    
-                    // Date filter
-                    let matchesDate = true;
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    if (dateTerm === 'today') {
-                        const todayDate = new Date();
-                        todayDate.setHours(0, 0, 0, 0);
-                        matchesDate = date.getTime() === todayDate.getTime();
-                    } else if (dateTerm === 'yesterday') {
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        yesterday.setHours(0, 0, 0, 0);
-                        matchesDate = date.getTime() === yesterday.getTime();
-                    } else if (dateTerm === 'week') {
-                        const weekStart = new Date();
-                        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-                        weekStart.setHours(0, 0, 0, 0);
-                        matchesDate = date >= weekStart;
-                    } else if (dateTerm === 'month') {
-                        const monthStart = new Date();
-                        monthStart.setDate(1);
-                        monthStart.setHours(0, 0, 0, 0);
-                        matchesDate = date >= monthStart;
-                    } else if (dateTerm === 'quarter') {
-                        const quarterStart = new Date();
-                        const currentMonth = quarterStart.getMonth();
-                        const quarterMonth = Math.floor(currentMonth / 3) * 3;
-                        quarterStart.setMonth(quarterMonth);
-                        quarterStart.setDate(1);
-                        quarterStart.setHours(0, 0, 0, 0);
-                        matchesDate = date >= quarterStart;
+                    const id = row.dataset.id.toLowerCase();
+                    const comp = (row.dataset.company || "").toLowerCase();
+                    const user = (row.dataset.user || "").toLowerCase();
+                    const stat = row.dataset.status;
+                    const dt = new Date(row.dataset.date);
+                    let ok = true;
+
+                    // search
+                    if (term && !(id.includes(term) || comp.includes(term) || user.includes(term))) ok = false;
+                    // company
+                    if (compTerm && comp !== compTerm) ok = false;
+                    // status
+                    if (statTerm && stat !== statTerm) ok = false;
+                    // date
+                    if (dateTerm === "today" && dt.getTime() !== today.getTime()) ok = false;
+                    if (dateTerm === "yesterday") {
+                        const y = new Date(today); y.setDate(y.getDate() - 1);
+                        if (dt.getTime() !== y.getTime()) ok = false;
                     }
-                    
-                    // Apply all filters
-                    if (matchesSearch && matchesCompany && matchesStatus && matchesDate) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
+                    if (dateTerm === "week") {
+                        const w = new Date(today); w.setDate(w.getDate() - today.getDay());
+                        if (dt < w) ok = false;
                     }
+                    if (dateTerm === "month") {
+                        const m = new Date(today); m.setDate(1);
+                        if (dt < m) ok = false;
+                    }
+                    if (dateTerm === "quarter") {
+                        const q = new Date(today);
+                        const qm = Math.floor(q.getMonth() / 3) * 3;
+                        q.setMonth(qm); q.setDate(1);
+                        if (dt < q) ok = false;
+                    }
+
+                    if (ok) { row.style.display = ""; visible++; }
+                    else { row.style.display = "none"; }
                 });
-                
-                // Update counters
-                filteredCount.textContent = `${visibleCount} items`;
-                if (currentShowing) {
-                    currentShowing.textContent = visibleCount;
-                }
+
+                filteredCount.textContent = visible + " items";
+                if (currentShowing) currentShowing.textContent = visible;
             }
-            
-            // Clear filters function
+
             function clearFilters() {
-                searchInput.value = '';
-                companyFilter.value = '';
-                statusFilter.value = '';
-                dateRangeFilter.value = '';
+                [searchInput, companyFilter, statusFilter, dateRangeFilter].forEach(e => e.value = "");
                 applyFilters();
             }
-            
-            // Refresh animation
+
             function refreshAnimation() {
-                const icon = refreshBtn.querySelector('i');
-                icon.classList.add('rotate-animation');
-                setTimeout(() => {
-                    icon.classList.remove('rotate-animation');
-                }, 1000);
-                
-                // In a real app, you would reload data here
-                // For demo, we'll just clear filters
+                const icon = refreshBtn.querySelector("i");
+                icon.classList.add("rotate-animation");
+                setTimeout(() => icon.classList.remove("rotate-animation"), 1000);
                 clearFilters();
             }
-            
-            // Sort functionality
+
             function sortTable(column) {
-                const table = document.getElementById('ordersTable');
-                const tbody = table.querySelector('tbody');
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                
-                // Determine sort direction
-                const currentIcon = document.querySelector(`.sort-icon[data-sort="${column}"]`);
-                const isAscending = !currentIcon.classList.contains('active-asc');
-                
-                // Reset all sort icons
-                sortIcons.forEach(icon => {
-                    icon.classList.remove('active-asc', 'active-desc', 'text-primary');
-                    icon.classList.add('text-muted');
-                });
-                
-                // Set active sort icon
-                currentIcon.classList.remove('text-muted');
-                currentIcon.classList.add('text-primary');
-                if (isAscending) {
-                    currentIcon.classList.add('active-asc');
-                } else {
-                    currentIcon.classList.add('active-desc');
-                }
-                
-                // Sort the rows
+                const tbody = document.getElementById("ordersTable").tBodies[0];
+                const rows = Array.from(tbody.rows);
+                const icon = document.querySelector(`.sort-icon[data-sort="${column}"]`);
+                const asc = !icon.classList.contains("active-asc");
+
+                // reset icons
+                sortIcons.forEach(i => i.className = "bi bi-arrow-down-up text-muted sort-icon");
+
+                icon.classList.toggle("active-asc", asc);
+                icon.classList.toggle("active-desc", !asc);
+                icon.classList.replace("text-muted", "text-primary");
+
                 rows.sort((a, b) => {
-                    let valueA, valueB;
-                    
-                    if (column === 'id') {
-                        valueA = parseInt(a.getAttribute('data-id'));
-                        valueB = parseInt(b.getAttribute('data-id'));
-                    } else if (column === 'company') {
-                        valueA = a.getAttribute('data-company').toLowerCase();
-                        valueB = b.getAttribute('data-company').toLowerCase();
-                    } else if (column === 'date') {
-                        valueA = new Date(a.getAttribute('data-date'));
-                        valueB = new Date(b.getAttribute('data-date'));
-                    }
-                    
-                    if (valueA < valueB) return isAscending ? -1 : 1;
-                    if (valueA > valueB) return isAscending ? 1 : -1;
-                    return 0;
+                    let A = a.dataset[column], B = b.dataset[column];
+                    if (column === "id") { A = +A; B = +B; }
+                    if (column === "date") { A = new Date(A); B = new Date(B); }
+                    return A < B ? (asc ? -1 : 1) : A > B ? (asc ? 1 : -1) : 0;
                 });
-                
-                // Reorder the rows
-                rows.forEach(row => tbody.appendChild(row));
+
+                rows.forEach(r => tbody.appendChild(r));
             }
-            
-            // Event listeners
-            if (searchInput) searchInput.addEventListener('input', applyFilters);
-            if (companyFilter) companyFilter.addEventListener('change', applyFilters);
-            if (statusFilter) statusFilter.addEventListener('change', applyFilters);
-            if (dateRangeFilter) dateRangeFilter.addEventListener('change', applyFilters);
-            if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
-            if (refreshBtn) refreshBtn.addEventListener('click', refreshAnimation);
-            
-            // Sort event listeners
+
+            // wire up events
+            searchInput.addEventListener("input", applyFilters);
+            companyFilter.addEventListener("change", applyFilters);
+            statusFilter.addEventListener("change", applyFilters);
+            dateRangeFilter.addEventListener("change", applyFilters);
+            clearFiltersBtn.addEventListener("click", clearFilters);
+            refreshBtn.addEventListener("click", refreshAnimation);
+            exportBtn.addEventListener("click", () => alert("Export…"));
+
             sortIcons.forEach(icon => {
-                icon.addEventListener('click', function() {
-                    const column = this.getAttribute('data-sort');
-                    sortTable(column);
-                });
+                icon.addEventListener("click", () => sortTable(icon.dataset.sort));
             });
-            
-            // Export button (demo functionality)
-            if (exportBtn) {
-                exportBtn.addEventListener('click', function() {
-                    alert('Export functionality would be implemented here.');
-                });
+
+            // if server told us to pre‑filter by company, do that
+            if (preselectedCompany) {
+                companyFilter.value = preselectedCompany;
             }
+
+            // initial
+            applyFilters();
         });
     </script>
-    
-    <style>
+}
+
+
+
+<style>
         .bg-opacity-10 {
             opacity: 0.1;
         }

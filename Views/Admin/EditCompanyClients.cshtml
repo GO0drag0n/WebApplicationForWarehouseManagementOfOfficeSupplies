@@ -200,9 +200,13 @@
                                 <a href="#" class="btn btn-outline-primary">
                                     <i class="bi bi-people me-2"></i>Manage Company Users
                                 </a>
-                                <a href="#" class="btn btn-outline-info">
-                                    <i class="bi bi-graph-up me-2"></i>View Order History
+                                <a asp-action="OrderHistory"
+                                   asp-controller="Admin"
+                                   asp-route-companyId="@Model.CompanyId"
+                                   class="btn btn-outline-info">
+                                    <i class="bi bi-graph-up me-2"></i>Order History
                                 </a>
+
                                 <button type="button" class="btn btn-outline-danger"
                                         data-bs-toggle="modal" data-bs-target="#deleteCompanyModal">
                                     <i class="bi bi-trash me-2"></i>Delete Company
