@@ -43,6 +43,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Models
         [ForeignKey("CategoryID")]
         public Category Category { get; set; }
 
+        [Required(ErrorMessage = "Section is required.")]
+        public int MinQuantityThreshold { get; set; }
+
         [NotMapped]
         public string FullName => $"{Brand} {Model}";
 

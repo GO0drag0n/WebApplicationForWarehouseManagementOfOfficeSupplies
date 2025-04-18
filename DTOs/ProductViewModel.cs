@@ -39,6 +39,9 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "Section must be greater than 0.")]
         public int ProductSection { get; set; }
 
+        [Required(ErrorMessage = "Section is required.")]
+        public int MinQuantityThreshold { get; set; } = 0;
+
         // Dropdown for category selection
         public List<SelectListItem> Categories { get; set; } = new List<SelectListItem>();
     }

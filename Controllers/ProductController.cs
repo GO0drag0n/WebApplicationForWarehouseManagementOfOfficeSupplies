@@ -70,32 +70,32 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         {
             var model = new ProductViewModel
             {
-                Categories = _context.Categories.Select(c => new SelectListItem
-                {
-                    Value = c.CategoryID.ToString(),
-                    Text = c.Name
-                }).ToList()
+                Categories = _context.Categories
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.CategoryID.ToString(),
+                        Text = c.Name
+                    }).ToList(),
+                MinQuantityThreshold = 10 // default threshold
             };
 
             return View(model);
         }
 
+        // POST: Product/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(CreateProductViewModel model)
+        public async Task<IActionResult> Create(ProductViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                var viewModel = new ProductViewModel
-                {
-                    Categories = _context.Categories.Select(c => new SelectListItem
+                model.Categories = _context.Categories
+                    .Select(c => new SelectListItem
                     {
                         Value = c.CategoryID.ToString(),
                         Text = c.Name
-                    }).ToList()
-                };
-
-                return View(viewModel);
+                    }).ToList();
+                return View(model);
             }
 
             var product = new Product
@@ -108,13 +108,13 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 Price = model.ProductPrice,
                 Row = model.ProductRow,
                 Section = model.ProductSection,
+                MinQuantityThreshold = model.MinQuantityThreshold,
                 UniqueNumber = Guid.NewGuid()
             };
 
             _context.Products.Add(product);
-            _context.SaveChanges();
-
-            return RedirectToAction("Index");
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
 
@@ -143,7 +143,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 DeliveryPrice = product.DeliveryPrice,
                 Price = product.Price,
                 Row = product.Row,
-                Section = product.Section
+                Section = product.Section,
+                MinQuantityThreshold = product.MinQuantityThreshold
             };
 
             ViewBag.Categories = new SelectList(_context.Categories, "CategoryID", "Name", product.CategoryID);
@@ -177,6 +178,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             productToUpdate.Price = editModel.Price;
             productToUpdate.Row = editModel.Row;
             productToUpdate.Section = editModel.Section;
+            productToUpdate.MinQuantityThreshold = editModel.MinQuantityThreshold;
 
             try
             {
@@ -211,6 +213,19 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: Product/LowQuantityAlert
+        [Authorize(Roles = "Admin,Storage Worker")]
+        public async Task<IActionResult> LowQuantityAlert()
+        {
+            var lowStock = await _context.Products
+                .Where(p => p.Quantity <= p.MinQuantityThreshold)
+                .OrderBy(p => p.Quantity)
+                .ToListAsync();
+
+            return View(lowStock);
+        }
+
 
 
     }
