@@ -2,48 +2,400 @@
 
 @{
     ViewData["Title"] = "Low Stock Alerts";
+
+    // Calculate summary statistics
+    var totalAlerts = Model.Count();
+    var criticalAlerts = Model.Count(p => p.Quantity == 0);
+    var severeAlerts = Model.Count(p => p.Quantity > 0 && p.Quantity <= p.MinQuantityThreshold / 2);
+    var moderateAlerts = totalAlerts - criticalAlerts - severeAlerts;
+
+    // Group products by category if available, otherwise use a default group
+    var groupedProducts = Model.GroupBy(p => p.Category?.Name ?? "Uncategorized");
 }
 
-<div class="container py-4">
-    <h2 class="mb-4">
-        <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-        Low Stock Alerts
-    </h2>
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="mb-1 d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                <span>Low Stock Alerts</span>
+            </h2>
+            <p class="text-muted mb-0">Monitor and manage products that need restocking</p>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex justify-content-md-end mt-3 mt-md-0">
+                <div class="input-group me-2" style="max-width: 250px;">
+                    <input type="text" class="form-control" placeholder="Search products..." id="searchInput">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel me-1"></i> Filter
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="all">All Alerts</a></li>
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="critical">Critical (Out of Stock)</a></li>
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="severe">Severe (Below 50%)</a></li>
+                        <li><a class="dropdown-item filter-option" href="#" data-filter="moderate">Moderate</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="sortByQuantity">Sort by Lowest Quantity</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
     @if (!Model.Any())
     {
-        <div class="alert alert-success">
-            All products are above their low‑stock thresholds.
+        <!-- Empty State Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="bi bi-check-circle-fill text-success display-1"></i>
+                </div>
+                <h4>All Products Are Well Stocked</h4>
+                <p class="text-muted mb-4">All products are currently above their low-stock thresholds.</p>
+                <a href="#" class="btn btn-outline-primary">
+                    <i class="bi bi-box-seam me-2"></i>View All Products
+                </a>
+            </div>
         </div>
     }
     else
     {
-        <table class="table table-bordered table-hover">
-            <thead class="table-light">
-                <tr>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Threshold</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var p in Model)
-                {
-                    <tr>
-                        <td>@p.Brand @p.Model</td>
-                        <td>@p.Quantity</td>
-                        <td>@p.MinQuantityThreshold</td>
-                        <td>
-                            <a asp-action="Edit"
-                               asp-route-id="@p.ProductID"
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil-square me-1"></i> Restock
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <!-- Alert Summary Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle p-3 bg-warning bg-opacity-10 me-3">
+                                <i class="bi bi-exclamation-triangle fs-4 text-warning"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Total Alerts</h6>
+                                <h3 class="mb-0 fw-bold">@totalAlerts</h3>
+                                <small class="text-muted">Products below threshold</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle p-3 bg-danger bg-opacity-10 me-3">
+                                <i class="bi bi-x-circle fs-4 text-danger"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Critical</h6>
+                                <h3 class="mb-0 fw-bold">@criticalAlerts</h3>
+                                <small class="text-muted">Out of stock</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle p-3 bg-warning bg-opacity-10 me-3">
+                                <i class="bi bi-exclamation-circle fs-4 text-warning"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Severe</h6>
+                                <h3 class="mb-0 fw-bold">@severeAlerts</h3>
+                                <small class="text-muted">Below 50% of threshold</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle p-3 bg-info bg-opacity-10 me-3">
+                                <i class="bi bi-info-circle fs-4 text-info"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Moderate</h6>
+                                <h3 class="mb-0 fw-bold">@moderateAlerts</h3>
+                                <small class="text-muted">Approaching threshold</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts by Category -->
+        @foreach (var group in groupedProducts)
+        {
+            <div class="card border-0 shadow-sm mb-4 product-category" id="category-@group.Key.ToLower().Replace(" ", "-")">
+                <div class="card-header bg-white p-4 border-bottom-0">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <i class="bi bi-tag-fill text-primary me-2"></i>
+                        <span>@group.Key</span>
+                        <span class="badge bg-primary rounded-pill ms-2">@group.Count()</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Product</th>
+                                    <th>Stock Status</th>
+                                    <th>Location</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in group)
+                                {
+                                    var stockPercentage = product.MinQuantityThreshold > 0
+                                    ? (int)Math.Min(100, Math.Max(0, (product.Quantity * 100) / product.MinQuantityThreshold))
+                                    : 0;
+
+                                    string statusClass = "bg-success";
+                                    string statusText = "Adequate";
+                                    string statusIcon = "bi-check-circle";
+                                    string rowClass = "";
+                                    string alertType = "moderate";
+
+                                    if (product.Quantity == 0)
+                                    {
+                                        statusClass = "bg-danger";
+                                        statusText = "Out of Stock";
+                                        statusIcon = "bi-x-circle";
+                                        rowClass = "table-danger";
+                                        alertType = "critical";
+                                    }
+                                    else if (product.Quantity <= product.MinQuantityThreshold / 2)
+                                    {
+                                        statusClass = "bg-warning text-dark";
+                                        statusText = "Severe";
+                                        statusIcon = "bi-exclamation-circle";
+                                        rowClass = "table-warning";
+                                        alertType = "severe";
+                                    }
+                                    else if (product.Quantity <= product.MinQuantityThreshold)
+                                    {
+                                        statusClass = "bg-info";
+                                        statusText = "Low";
+                                        statusIcon = "bi-info-circle";
+                                        rowClass = "table-info";
+                                        alertType = "moderate";
+                                    }
+
+                                    <tr class="product-row @rowClass" data-alert-type="@alertType" data-quantity="@product.Quantity">
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-light rounded p-2 me-3">
+                                                    <i class="bi bi-box text-primary fs-4"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">@product.Brand @product.Model</div>
+                                                    <div class="text-muted small">ID: @product.ProductID</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <span class="badge @statusClass me-2">
+                                                        <i class="bi @statusIcon me-1"></i>@statusText
+                                                    </span>
+                                                    <span class="fw-medium">@product.Quantity / @product.MinQuantityThreshold</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px; width: 100%; max-width: 200px;">
+                                                    <div class="progress-bar @statusClass" role="progressbar"
+                                                         style="width: @stockPercentage%;"
+                                                         aria-valuenow="@stockPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(product.Section.ToString()) || !string.IsNullOrEmpty(product.Row.ToString()))
+                                            {
+                                                <div>
+                                                    @if (!string.IsNullOrEmpty(product.Section.ToString()))
+                                                    {
+                                                        <span class="badge bg-light text-dark me-1">Section: @product.Section</span>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(product.Row.ToString()))
+                                                    {
+                                                        <span class="badge bg-light text-dark">Row: @product.Row</span>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not specified</span>
+                                            }
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group">
+                                                <a asp-action="Edit" asp-route-id="@product.ProductID" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-plus-circle me-1"></i> Restock
+                                                </a>
+                                                
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Quick Actions Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white p-4 border-bottom-0">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning-fill text-primary me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="~/product" class="btn btn-outline-primary w-100 p-3 d-flex flex-column align-items-center">
+                            <i class="bi bi-gear fs-3 mb-2"></i>
+                            <span>Manage Thresholds</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function () {
+                    const searchTerm = this.value.toLowerCase();
+                    const productRows = document.querySelectorAll('.product-row');
+
+                    productRows.forEach(row => {
+                        const productText = row.textContent.toLowerCase();
+                        if (productText.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    // Hide empty categories
+                    document.querySelectorAll('.product-category').forEach(category => {
+                        const visibleRows = category.querySelectorAll('.product-row:not([style*="display: none"])').length;
+                        if (visibleRows === 0) {
+                            category.style.display = 'none';
+                        } else {
+                            category.style.display = '';
+                        }
+                    });
+                });
+            }
+
+            // Filter functionality
+            const filterOptions = document.querySelectorAll('.filter-option');
+            filterOptions.forEach(option => {
+                option.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const filterType = this.getAttribute('data-filter');
+                    const productRows = document.querySelectorAll('.product-row');
+
+                    productRows.forEach(row => {
+                        if (filterType === 'all' || row.getAttribute('data-alert-type') === filterType) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    // Hide empty categories
+                    document.querySelectorAll('.product-category').forEach(category => {
+                        const visibleRows = category.querySelectorAll('.product-row:not([style*="display: none"])').length;
+                        if (visibleRows === 0) {
+                            category.style.display = 'none';
+                        } else {
+                            category.style.display = '';
+                        }
+                    });
+                });
+            });
+
+            // Sort by quantity
+            const sortByQuantityBtn = document.getElementById('sortByQuantity');
+            if (sortByQuantityBtn) {
+                sortByQuantityBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    document.querySelectorAll('.product-category').forEach(category => {
+                        const tbody = category.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                        rows.sort((a, b) => {
+                            const quantityA = parseInt(a.getAttribute('data-quantity'));
+                            const quantityB = parseInt(b.getAttribute('data-quantity'));
+                            return quantityA - quantityB;
+                        });
+
+                        rows.forEach(row => tbody.appendChild(row));
+                    });
+                });
+            }
+
+            // Card hover effect
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function () {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 0.5rem 1rem rgba(0, 0, 0, 0.15)';
+                });
+
+                card.addEventListener('mouseleave', function () {
+                    this.style.transform = '';
+                    this.style.boxShadow = '';
+                });
+            });
+        });
+    </script>
+
+    <style>
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .bg-opacity-10 {
+            opacity: 0.1;
+        }
+
+        .progress {
+            background-color: #f0f0f0;
+        }
+
+        .table > :not(caption) > * > * {
+            padding: 0.75rem 1rem;
+        }
+
+        .product-row:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+    </style>
+}
