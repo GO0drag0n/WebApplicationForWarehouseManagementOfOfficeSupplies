@@ -1,0 +1,278 @@
+﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs.AdminManageCompanyClientsViewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Edit Company";
+}
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="AdminManageCompanyClients">Companies</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Edit @Model.CompanyName
+                    </li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-building text-primary me-2"></i>
+                    <span>Edit Company</span>
+                </h2>
+                <a asp-action="Index" asp-controller="AdminManageCompanyClients" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to List
+                </a>
+            </div>
+            <p class="text-muted">Update company information and settings</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Edit Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white p-4 border-bottom-0">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>Company Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post"
+                          asp-action="Edit"
+                          asp-controller="AdminManageCompanyClients"
+                          asp-route-id="@Model.CompanyId">
+                        @Html.AntiForgeryToken()
+                        <input asp-for="CompanyId" type="hidden" />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="CompanyName" class="form-label">
+                                    <i class="bi bi-building me-1 text-muted"></i>
+                                    @Html.DisplayNameFor(m => m.CompanyName)
+                                </label>
+                                <input asp-for="CompanyName" class="form-control" />
+                                <span asp-validation-for="CompanyName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="VATNumber" class="form-label">
+                                    <i class="bi bi-receipt me-1 text-muted"></i>
+                                    @Html.DisplayNameFor(m => m.VATNumber)
+                                </label>
+                                <input asp-for="VATNumber" class="form-control" />
+                                <span asp-validation-for="VATNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="CompanyAddress" class="form-label">
+                                    <i class="bi bi-geo-alt me-1 text-muted"></i>
+                                    @Html.DisplayNameFor(m => m.CompanyAddress)
+                                </label>
+                                <textarea asp-for="CompanyAddress"
+                                          class="form-control"
+                                          rows="2"></textarea>
+                                <span asp-validation-for="CompanyAddress" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="CompanyPhone" class="form-label">
+                                    <i class="bi bi-telephone me-1 text-muted"></i>
+                                    @Html.DisplayNameFor(m => m.CompanyPhone)
+                                </label>
+                                <input asp-for="CompanyPhone" class="form-control" />
+                                <span asp-validation-for="CompanyPhone" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-12"><hr class="my-4" /></div>
+
+                            <!-- Business Metrics -->
+                            <div class="col-md-6">
+                                <label asp-for="QuarterOrderValue" class="form-label">
+                                    <i class="bi bi-cash-stack me-1 text-muted"></i>
+                                    @Html.DisplayNameFor(m => m.QuarterOrderValue)
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="QuarterOrderValue"
+                                           class="form-control"
+                                           type="number"
+                                           step="0.01" />
+                                </div>
+                                <span asp-validation-for="QuarterOrderValue" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="DiscountLevel" class="form-label">
+                                    <i class="bi bi-percent me-1 text-muted"></i>
+                                    @Html.DisplayNameFor(m => m.DiscountLevel)
+                                </label>
+                                <input asp-for="DiscountLevel" class="form-control" />
+                                <span asp-validation-for="DiscountLevel" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a asp-action="Index"
+                               asp-controller="AdminManageCompanyClients"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview + Additional Actions -->
+        <div class="col-lg-4">
+            <!-- Company Preview -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white p-4 border-bottom-0">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-eye text-primary me-2"></i>Company Preview
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
+                            <i class="bi bi-building fs-1 text-primary"></i>
+                        </div>
+                        <h4 id="previewCompanyName">@Model.CompanyName</h4>
+                        <p class="text-muted mb-0" id="previewCompanyAddress">
+                            @Model.CompanyAddress
+                        </p>
+                    </div>
+                    <div class="border rounded p-3 mb-3">
+                        <h6 class="text-muted mb-2">Contact Information</h6>
+                        <div class="mb-2">
+                            <i class="bi bi-telephone text-primary me-2"></i>
+                            <span id="previewCompanyPhone">@Model.CompanyPhone</span>
+                        </div>
+                        <div>
+                            <i class="bi bi-receipt text-primary me-2"></i>
+                            <span id="previewVAT">
+                                @(string.IsNullOrEmpty(Model.VATNumber)
+                                    ? "Not provided"
+                                    : Model.VATNumber)
+                            </span>
+                        </div>
+                    </div>
+                    <div class="border rounded p-3 mb-4">
+                        <h6 class="text-muted mb-2">Business Metrics</h6>
+                        <div class="mb-2">
+                            <i class="bi bi-cash-stack text-success me-2"></i>
+                            <span>Quarter Value: </span>
+                            <span id="previewQuarterValue" class="fw-bold">
+                                @String.Format(
+                                         CultureInfo.GetCultureInfo("en-US"),
+                                         "{0:C0}",
+                                         Model.QuarterOrderValue
+                                         )
+                            </span>
+                        </div>
+                        <div>
+                            <i class="bi bi-percent text-info me-2"></i>
+                            <span>Discount Level: </span>
+                            <span id="previewDiscount" class="fw-bold">
+                                @Model.DiscountLevel
+                            </span>
+                        </div>
+                    </div>
+
+
+                    <!-- Additional Actions Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white p-4 border-bottom-0">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-gear text-primary me-2"></i>Additional Actions
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-grid gap-2">
+                                <a href="#" class="btn btn-outline-primary">
+                                    <i class="bi bi-people me-2"></i>Manage Company Users
+                                </a>
+                                <a href="#" class="btn btn-outline-info">
+                                    <i class="bi bi-graph-up me-2"></i>View Order History
+                                </a>
+                                <button type="button" class="btn btn-outline-danger"
+                                        data-bs-toggle="modal" data-bs-target="#deleteCompanyModal">
+                                    <i class="bi bi-trash me-2"></i>Delete Company
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Company Modal -->
+        <div class="modal fade" id="deleteCompanyModal" tabindex="-1" aria-labelledby="deleteCompanyModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="deleteCompanyModalLabel">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Confirm Deletion
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <i class="bi bi-trash display-1 text-danger mb-3"></i>
+                        <p>Are you sure you want to delete <strong>@Model.CompanyName</strong>? This cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer border-top-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form method="post"
+                              asp-action="Delete"
+                              asp-controller="AdminManageCompanyClients"
+                              asp-route-id="@Model.CompanyId">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>Delete Company
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .card {
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+
+                .card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 .5rem 1rem rgba(0,0,0,0.15) !important;
+                }
+        </style>
+
+        @section Scripts {
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const quarterInput = document.querySelector('input[name="QuarterOrderValue"]');
+                    const preview = document.getElementById('previewQuarterValue');
+                    const formatter = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        maximumFractionDigits: 0
+                    });
+
+                    // initial
+                    preview.textContent = formatter.format(parseFloat(quarterInput.value) || 0);
+
+                    quarterInput.addEventListener('input', () => {
+                        preview.textContent = formatter.format(parseFloat(quarterInput.value) || 0);
+                    });
+                });
+            </script>
+        }

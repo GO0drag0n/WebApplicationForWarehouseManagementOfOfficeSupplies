@@ -1,0 +1,410 @@
+﻿@model IEnumerable<WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs.AdminManageCompanyClientsViewModel>
+
+@{
+    ViewData["Title"] = "Manage Company Clients";
+}
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="mb-1 d-flex align-items-center">
+                <i class="bi bi-building text-primary me-2"></i>
+                <span>Manage Company Clients</span>
+            </h2>
+            <p class="text-muted mb-0">View and manage all registered company clients</p>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex justify-content-md-end mt-3 mt-md-0">
+                <div class="input-group me-2" style="max-width: 300px;">
+                    <input type="text" class="form-control" placeholder="Search companies..." id="companySearch">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 bg-primary bg-opacity-10 me-3">
+                            <i class="bi bi-building fs-4 text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Total Companies</h6>
+                            <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 bg-success bg-opacity-10 me-3">
+                            <i class="bi bi-graph-up fs-4 text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Avg. Order Value</h6>
+                            <h3 class="mb-0 fw-bold">@(Model.Any() ? Model.Average(c => c.QuarterOrderValue).ToString("C0") : "$0")</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 bg-info bg-opacity-10 me-3">
+                            <i class="bi bi-percent fs-4 text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Avg. Discount</h6>
+                            <h3 class="mb-0 fw-bold">5.0%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 bg-warning bg-opacity-10 me-3">
+                            <i class="bi bi-star fs-4 text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Top Discount Level</h6>
+                            <h3 class="mb-0 fw-bold">@(Model.Any() ? Model.Max(c => c.DiscountLevel) : "None")</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Companies Table Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white p-4 border-bottom-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-ul text-primary me-2"></i>Company Clients
+                </h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel me-1"></i> Filter
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="#">All Companies</a></li>
+                        <li><a class="dropdown-item" href="#">High Value (>$10,000)</a></li>
+                        <li><a class="dropdown-item" href="#">Premium Discount (>10%)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">Sort by Name</a></li>
+                        <li><a class="dropdown-item" href="#">Sort by Order Value</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="companiesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Company</th>
+                            <th>Contact Info</th>
+                            <th>VAT Number</th>
+                            <th>Quarter Value</th>
+                            <th>Discount</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var company in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded-circle p-2 me-3">
+                                            <i class="bi bi-building text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">@company.CompanyName</div>
+                                            <small class="text-muted">@company.CompanyAddress</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <i class="bi bi-telephone me-1 text-muted"></i>
+                                        <span>@company.CompanyPhone</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">@(string.IsNullOrEmpty(company.VATNumber) ? "Not provided" : company.VATNumber)</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">@company.QuarterOrderValue.ToString("C0")</div>
+                                    <div class="progress mt-1" style="height: 4px;">
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                             style="width: @(Model.Max(c => c.QuarterOrderValue) > 0 ? (company.QuarterOrderValue * 100 / Model.Max(c => c.QuarterOrderValue)) : 0)%;"
+                                             aria-valuenow="@(Model.Max(c => c.QuarterOrderValue) > 0 ? (company.QuarterOrderValue * 100 / Model.Max(c => c.QuarterOrderValue)) : 0)"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @{
+                                        string badgeClass = "bg-light text-dark";
+
+                                        if (company.DiscountLevel.ToString().ToLower() == "bronze")
+                                        {
+                                            badgeClass = "bg-warning text-dark";
+                                        }
+                                        else if (company.DiscountLevel.ToString().ToLower() == "silver")
+                                        {
+                                            badgeClass = "bg-secondary";
+                                        }
+                                        else if (company.DiscountLevel.ToString().ToLower() == "gold")
+                                        {
+                                            badgeClass = "bg-warning";
+                                        }
+                                        else if (company.DiscountLevel.ToString().ToLower() == "platinum")
+                                        {
+                                            badgeClass = "bg-info";
+                                        }
+                                        else if (company.DiscountLevel.ToString().ToLower() == "diamond")
+                                        {
+                                            badgeClass = "bg-primary";
+                                        }
+                                    }
+                                    <span class="badge @badgeClass">@company.DiscountLevel</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a href="@Url.Action("Edit", "AdminManageCompanyClients", new { id = company.CompanyId })" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#companyDetailsModal"
+                                                data-company-id="@company.CompanyId"
+                                                data-company-name="@company.CompanyName">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+
+
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCompanyModal"
+                                                data-company-id="@company.CompanyId" data-company-name="@company.CompanyName">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white p-3">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Company Details Modal -->
+<div class="modal fade" id="companyDetailsModal" tabindex="-1" aria-labelledby="companyDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="companyDetailsModalLabel">
+                    <i class="bi bi-building me-2"></i>
+                    <span id="modalCompanyName">Company Details</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="bi bi-building fs-1 text-primary"></i>
+                    </div>
+                    <h4 id="modalDetailCompanyName">Company Name</h4>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="text-muted mb-2">Contact Information</h6>
+                            <div class="mb-2">
+                                <i class="bi bi-geo-alt text-primary me-2"></i>
+                                <span id="modalAddress">Address</span>
+                            </div>
+                            <div class="mb-2">
+                                <i class="bi bi-telephone text-primary me-2"></i>
+                                <span id="modalPhone">Phone</span>
+                            </div>
+                            <div>
+                                <i class="bi bi-receipt text-primary me-2"></i>
+                                <span id="modalVAT">VAT Number</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="text-muted mb-2">Business Metrics</h6>
+                            <div class="mb-2">
+                                <i class="bi bi-cash-stack text-success me-2"></i>
+                                <span>Quarter Value: </span>
+                                <span id="modalQuarterValue" class="fw-bold">$0</span>
+                            </div>
+                            <div>
+                                <i class="bi bi-percent text-info me-2"></i>
+                                <span>Discount Level: </span>
+                                <span id="modalDiscount" class="fw-bold">None</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="modalEditButton" class="btn btn-primary">
+                    <i class="bi bi-pencil me-1"></i>Edit Company
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Delete Company Modal -->
+<div class="modal fade" id="deleteCompanyModal" tabindex="-1" aria-labelledby="deleteCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteCompanyModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-trash display-1 text-danger"></i>
+                </div>
+                <p class="mb-0">Are you sure you want to delete <strong id="deleteCompanyName">this company</strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteCompanyForm" method="post" class="m-0">
+                    <input type="hidden" id="deleteCompanyId" name="companyId" value="" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Delete Company
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Correct Bootstrap JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const companyDetailsModal = document.getElementById('companyDetailsModal');
+
+            if (companyDetailsModal) {
+                companyDetailsModal.addEventListener('show.bs.modal', function (event) {
+                    // Get the button that triggered the modal
+                    const button = event.relatedTarget;
+
+                    // Get company ID and name from data attributes
+                    const companyId = button.getAttribute('data-company-id');
+                    const companyName = button.getAttribute('data-company-name');
+
+                    // Log the companyId and companyName to ensure they are correctly retrieved
+                    console.log(`Opening modal for companyId: ${companyId}`);
+                    console.log(`Company Name: ${companyName}`);
+
+                    // Update modal title with company name
+                    document.getElementById('modalCompanyName').textContent = companyName;
+                    document.getElementById('modalDetailCompanyName').textContent = companyName;
+                    document.getElementById('modalEditButton').href = `/AdminManageCompanyClients/Edit/${companyId}`;
+
+                    // Fetch company details using the companyId
+                    fetch(`/AdminManageCompanyClients/GetCompanyDetails/${companyId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Log the fetched data to verify it's returned correctly
+                            console.log('Company details fetched:', data);
+
+                            // Populate the modal with company data
+                            document.getElementById('modalAddress').textContent = data.companyAddress || 'Address not available';
+                            document.getElementById('modalPhone').textContent = data.companyPhone || 'Phone not available';
+                            document.getElementById('modalVAT').textContent = data.vatNumber || 'VAT not provided';
+                            document.getElementById('modalQuarterValue').textContent = data.quarterOrderValue.toFixed(2); // Format to 2 decimal places
+                            document.getElementById('modalDiscount').textContent = data.discountLevel.toFixed(2); // Format to 2 decimal places
+                        })
+                        .catch(error => console.error('Error fetching company details:', error));
+                });
+            } else {
+                console.log('Modal not found!');
+            }
+
+            // Handle the delete company modal
+            const deleteCompanyModal = document.getElementById('deleteCompanyModal');
+            if (deleteCompanyModal) {
+                deleteCompanyModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const companyId = button.getAttribute('data-company-id');
+                    const companyName = button.getAttribute('data-company-name');
+
+                    document.getElementById('deleteCompanyName').textContent = companyName;
+                    document.getElementById('deleteCompanyId').value = companyId;
+                    document.getElementById('deleteCompanyForm').action = `/Admin/DeleteCompany/${companyId}`;
+                });
+            }
+        });
+
+    </script>
+}
+
+
+    <style>
+        .bg-opacity-10 {
+            opacity: 0.1;
+        }
+
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+            }
+    </style>
+}

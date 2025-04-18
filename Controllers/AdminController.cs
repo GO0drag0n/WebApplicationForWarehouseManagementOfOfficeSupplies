@@ -2,13 +2,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
-using WebApplicationForWarehouseManagementOfOfficeSupplies.ViewModels;
 
 [Authorize(Roles = "Admin")]
 public class AdminController : Controller
