@@ -330,6 +330,74 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return RedirectToAction("Manage", new { id = companyId });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Company Owner")]
+        public async Task<IActionResult> AddWorker(
+    Guid companyId,
+    string email,
+    [FromServices] UserManager<User> userManager,
+    [FromServices] RoleManager<IdentityRole> roleManager)
+        {
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                TempData["ErrorMessage"] = "Worker email is required.";
+                return RedirectToAction(nameof(Manage));
+            }
+
+            var worker = await userManager.FindByEmailAsync(email);
+            if (worker == null)
+            {
+                TempData["ErrorMessage"] = $"No user found with email '{email}'.";
+                return RedirectToAction(nameof(Manage));
+            }
+
+            var ownerId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var company = await _context.Companies
+                .Include(c => c.UserCompanies)
+                .FirstOrDefaultAsync(c => c.CompanyId == companyId && c.OwnerId == ownerId);
+            if (company == null)
+            {
+                TempData["ErrorMessage"] = "Invalid company or you do not have permission to add workers.";
+                return RedirectToAction(nameof(Manage));
+            }
+
+            if (company.UserCompanies.Any(uc => uc.UserId == worker.Id))
+            {
+                TempData["ErrorMessage"] = $"{email} is already a member of this company.";
+                return RedirectToAction(nameof(Manage));
+            }
+
+            _context.UserCompanies.Add(new UserCompany
+            {
+                CompanyId = companyId,
+                UserId = worker.Id
+            });
+
+            if (!await roleManager.RoleExistsAsync("Company Worker"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Company Worker"));
+            }
+
+            if (!await userManager.IsInRoleAsync(worker, "Company Worker"))
+            {
+                var roleResult = await userManager.AddToRoleAsync(worker, "Company Worker");
+                if (!roleResult.Succeeded)
+                {
+                    TempData["ErrorMessage"] =
+                        "Worker added, but failed to assign Company Worker role: " +
+                        string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    return RedirectToAction(nameof(Manage));
+                }
+            }
+
+            
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = $"Successfully added {email} as a worker.";
+            return RedirectToAction(nameof(Manage));
+        }
+
         [Authorize(Roles = "Company Owner,Company Worker")]
         public async Task<IActionResult> OrderHistory()
         {
