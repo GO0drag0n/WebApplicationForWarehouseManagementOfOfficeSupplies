@@ -15,6 +15,14 @@ public class ManageAccountViewModel
     [Display(Name = "Email Address")]
     public string Email { get; set; }
 
+    public bool IsCompanyOwner { get; set; }
+    public bool IsCompanyWorker { get; set; }
+    public bool IsAdmin { get; set; }
+
+    public string? CompanyName { get; set; }
+    public Guid CompanyId { get; set; }
+
+
     [DataType(DataType.Password)]
     [Display(Name = "Current Password")]
     public string CurrentPassword { get; set; }
@@ -24,16 +32,10 @@ public class ManageAccountViewModel
     public string NewPassword { get; set; }
 
     [DataType(DataType.Password)]
-    [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
     [Display(Name = "Confirm Password")]
+    [Compare(nameof(NewPassword),
+             ErrorMessage = "The new password and confirmation password do not match.")]
     public string ConfirmPassword { get; set; }
 
-    public bool IsCompanyOwner { get; set; } // Indicates if the user is a company owner
-    public bool IsCompanyWorker { get; set; }
-
-    public bool IsAdmin { get; set; }
-
-    public string CompanyName { get; set; } // The name of the company
-    public Guid CompanyId { get; set; } // The ID of the company
 }
 

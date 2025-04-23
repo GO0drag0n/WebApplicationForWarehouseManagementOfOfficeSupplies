@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplicationForWarehouseManagementOfOfficeSupplies.Data;
-using System.Security.Claims;
+using WebApplicationForWarehouseManagementOfOfficeSupplies.Models;
+using WebApplicationForWarehouseManagementOfOfficeSupplies.DTOs;
 
 namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 {
@@ -15,56 +18,50 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ApplicationDbContext _context;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ApplicationDbContext context)
+        public AccountController(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
         }
 
+        // === Registration Step 1 ===
         [HttpGet]
         public IActionResult RegisterStep1()
-        {
-            return View(new RegisterStep1ViewModel());
-        }
+            => View(new RegisterStep1ViewModel());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RegisterStep1(RegisterStep1ViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View(model);
-            }
-            // Store first and last name in TempData for use in Step 2.
+
             TempData["FirstName"] = model.FirstName;
             TempData["LastName"] = model.LastName;
-            return RedirectToAction("RegisterStep2");
+            return RedirectToAction(nameof(RegisterStep2));
         }
 
-        // STEP 2: Collect Email, Password, and Confirm Password
+        // === Registration Step 2 ===
         [HttpGet]
         public IActionResult RegisterStep2()
         {
-            // Retrieve first and last name from TempData.
             var firstName = TempData["FirstName"] as string;
             var lastName = TempData["LastName"] as string;
             if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
-            {
-                // If values are missing, redirect back to Step 1.
-                return RedirectToAction("RegisterStep1");
-            }
+                return RedirectToAction(nameof(RegisterStep1));
 
-            // Keep TempData values so they're available for the POST.
             TempData.Keep("FirstName");
             TempData.Keep("LastName");
 
-            var model = new RegisterStep2ViewModel
+            return View(new RegisterStep2ViewModel
             {
                 FirstName = firstName,
                 LastName = lastName
-            };
-            return View(model);
+            });
         }
 
         [HttpPost]
@@ -72,10 +69,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         public async Task<IActionResult> RegisterStep2(RegisterStep2ViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View(model);
-            }
-            // Create the new user using values from both steps.
+
             var user = new User
             {
                 UserName = model.Email,
@@ -92,65 +87,70 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             }
 
             foreach (var error in result.Errors)
-            {
                 ModelState.AddModelError(string.Empty, error.Description);
-            }
+
             return View(model);
         }
 
-
+        // === Login / Logout ===
         [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
+        public IActionResult Login() => View();
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(
+                    model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+
                 if (result.Succeeded)
-                {
                     return RedirectToAction("Index", "Home");
-                }
 
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
-
             return View(model);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
 
+        // === Manage Account ===
         [HttpGet]
         public async Task<IActionResult> Manage()
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user == null)
+            // 1) Pull any TempData‐stored errors into ModelState
+            if (TempData["PwdErrors"] is string[] pwdErrors)
             {
-                return RedirectToAction("Login");
+                foreach (var err in pwdErrors)
+                    ModelState.AddModelError(string.Empty, err);
             }
+            if (TempData["ErrorMessage"] is string errMsg)
+                ModelState.AddModelError(string.Empty, errMsg);
 
-            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin"); // Check if the user is an Admin
+            // SuccessMessage stays in TempData to be rendered by the view
+
+            // 2) Build the standard ManageAccountViewModel
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return RedirectToAction(nameof(Login));
+
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
             var isCompanyOwner = await _userManager.IsInRoleAsync(user, "Company Owner");
             var isCompanyWorker = await _userManager.IsInRoleAsync(user, "Company Worker");
 
             string companyName = null;
             Guid companyId = Guid.Empty;
-
             if (isCompanyOwner || isCompanyWorker)
             {
                 var company = await _context.Companies
-                    .FirstOrDefaultAsync(c => c.OwnerId == user.Id || c.UserCompanies.Any(uc => uc.UserId == user.Id));
-
+                    .FirstOrDefaultAsync(c => c.OwnerId == user.Id ||
+                                              c.UserCompanies.Any(uc => uc.UserId == user.Id));
                 if (company != null)
                 {
                     companyName = company.CompanyName;
@@ -163,7 +163,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                IsAdmin = isAdmin, // Set IsAdmin to true if the user is in the Admin role
+                IsAdmin = isAdmin,
                 IsCompanyOwner = isCompanyOwner,
                 IsCompanyWorker = isCompanyWorker,
                 CompanyName = companyName,
@@ -173,197 +173,189 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult ChangePassword()
+            => RedirectToAction(nameof(Manage));
 
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ManageAccountViewModel form)
+        {
+            var errors = new List<string>();
+
+            if (!ModelState.IsValid)
+            {
+                errors.AddRange(ModelState.Values
+                                   .SelectMany(v => v.Errors)
+                                   .Select(e => e.ErrorMessage));
+                TempData["PwdErrors"] = errors.ToArray();
+                return RedirectToAction(nameof(Manage));
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            IdentityResult result;
+            if (!await _userManager.HasPasswordAsync(user))
+                result = await _userManager.AddPasswordAsync(user, form.NewPassword);
+            else
+                result = await _userManager.ChangePasswordAsync(
+                             user, form.CurrentPassword, form.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                errors.AddRange(result.Errors.Select(e => e.Description));
+                TempData["PwdErrors"] = errors.ToArray();
+                return RedirectToAction(nameof(Manage));
+            }
+
+
+            await _signInManager.RefreshSignInAsync(user);
+            TempData["SuccessMessage"] = "Password changed successfully!";
+            return RedirectToAction(nameof(Manage));
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(ManageAccountViewModel model)
         {
+            ModelState.Remove(nameof(model.CurrentPassword));
+            ModelState.Remove(nameof(model.NewPassword));
+            ModelState.Remove(nameof(model.ConfirmPassword));
+
             if (!ModelState.IsValid)
-            {
                 return View("Manage", model);
-            }
 
             var user = await _userManager.GetUserAsync(User);
-
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.Email = model.Email;
-            user.UserName = model.Email; // Ensure the username matches the email if needed
+            user.UserName = model.Email;
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+                foreach (var e in result.Errors)
+                    ModelState.AddModelError(string.Empty, e.Description);
                 return View("Manage", model);
             }
 
             TempData["SuccessMessage"] = "Profile updated successfully!";
-            return RedirectToAction("Manage");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(ManageAccountViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View("Manage", model);
-            }
-
-            var user = await _userManager.GetUserAsync(User);
-            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
-
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-                return View("Manage", model);
-            }
-
-            TempData["SuccessMessage"] = "Password changed successfully!";
-            return RedirectToAction("Manage");
+            return RedirectToAction(nameof(Manage));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetCompanyCode(Guid companyId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             if (userId == null)
-            {
-                return BadRequest(new { message = "User is not authenticated." });
-            }
+                return BadRequest(new { message = "User not authenticated." });
 
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.CompanyId == companyId && c.OwnerId == userId);
-
+            var company = await _context.Companies
+                .FirstOrDefaultAsync(c => c.CompanyId == companyId && c.OwnerId == userId);
             if (company == null)
-            {
-                return BadRequest(new { message = "Invalid company or unauthorized access." });
-            }
+                return BadRequest(new { message = "Invalid company or unauthorized." });
 
-            return Json(new { CompanyName = company.CompanyName, CompanyId = company.CompanyId });
+            return Json(new { company.CompanyName, company.CompanyId });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> JoinCompany(string companyCode,
-    [FromServices] SignInManager<User> signInManager)
+        public async Task<IActionResult> JoinCompany(string companyCode)
         {
             if (string.IsNullOrWhiteSpace(companyCode))
             {
                 TempData["ErrorMessage"] = "Company code is required.";
-                return RedirectToAction("Manage");
+                return RedirectToAction(nameof(Manage));
             }
 
-            // Get the currently logged-in user
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 TempData["ErrorMessage"] = "User not found. Please log in again.";
-                return RedirectToAction("Login");
+                return RedirectToAction(nameof(Login));
             }
 
-            // Validate the company code
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.CompanyId.ToString() == companyCode);
+            var company = await _context.Companies
+                .FirstOrDefaultAsync(c => c.CompanyId.ToString() == companyCode);
             if (company == null)
             {
                 TempData["ErrorMessage"] = "Invalid company code.";
-                return RedirectToAction("Manage");
+                return RedirectToAction(nameof(Manage));
             }
 
-            // Check if the user is already a member of this company
-            var existingMembership = await _context.UserCompanies
+            var already = await _context.UserCompanies
                 .AnyAsync(uc => uc.UserId == user.Id && uc.CompanyId == company.CompanyId);
-            if (existingMembership)
+            if (already)
             {
                 TempData["ErrorMessage"] = "You are already a member of this company.";
-                return RedirectToAction("Manage");
+                return RedirectToAction(nameof(Manage));
             }
 
-            // Add the user as a worker to the company
-            var userCompany = new UserCompany
+            _context.UserCompanies.Add(new UserCompany
             {
                 UserId = user.Id,
                 CompanyId = company.CompanyId
-            };
-            _context.UserCompanies.Add(userCompany);
+            });
 
-            // Add user to the "Company Worker" role if not already assigned
             if (!await _userManager.IsInRoleAsync(user, "Company Worker"))
             {
-                var result = await _userManager.AddToRoleAsync(user, "Company Worker");
-                if (!result.Succeeded)
+                var roleResult = await _userManager.AddToRoleAsync(user, "Company Worker");
+                if (!roleResult.Succeeded)
                 {
-                    TempData["ErrorMessage"] = "Failed to assign role: " + string.Join(", ", result.Errors.Select(e => e.Description));
-                    return RedirectToAction("Manage");
+                    TempData["ErrorMessage"] =
+                        "Failed to assign role: " +
+                        string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    return RedirectToAction(nameof(Manage));
                 }
-                // Refresh the sign-in so that the updated role is reflected in the user's claims
-                await signInManager.RefreshSignInAsync(user);
+                await _signInManager.RefreshSignInAsync(user);
             }
 
             await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = $"You have successfully joined the company: {company.CompanyName}.";
-            return RedirectToAction("Manage");
+            TempData["SuccessMessage"] = $"Joined company: {company.CompanyName}.";
+            return RedirectToAction(nameof(Manage));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LeaveCompany()
         {
-            // Get the currently logged-in user.
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 TempData["ErrorMessage"] = "User not found. Please log in again.";
-                return RedirectToAction("Login");
+                return RedirectToAction(nameof(Login));
             }
 
-            // Prevent company owners from leaving using this method.
             if (await _userManager.IsInRoleAsync(user, "Company Owner"))
             {
-                TempData["ErrorMessage"] = "Company owners cannot leave the company directly.";
-                return RedirectToAction("Manage");
+                TempData["ErrorMessage"] = "Company owners cannot leave directly.";
+                return RedirectToAction(nameof(Manage));
             }
 
-            // Find the user's membership record in the company.
-            var userCompany = await _context.UserCompanies.FirstOrDefaultAsync(uc => uc.UserId == user.Id);
-            if (userCompany == null)
+            var membership = await _context.UserCompanies
+                .FirstOrDefaultAsync(uc => uc.UserId == user.Id);
+            if (membership == null)
             {
                 TempData["ErrorMessage"] = "You are not a member of any company.";
-                return RedirectToAction("Manage");
+                return RedirectToAction(nameof(Manage));
             }
 
-            // Remove the user's membership from the company.
-            _context.UserCompanies.Remove(userCompany);
+            _context.UserCompanies.Remove(membership);
             await _context.SaveChangesAsync();
 
-            // Remove the "Company Worker" role if the user is assigned to it.
             if (await _userManager.IsInRoleAsync(user, "Company Worker"))
             {
-                var removeRoleResult = await _userManager.RemoveFromRoleAsync(user, "Company Worker");
-                if (!removeRoleResult.Succeeded)
+                var roleRemove = await _userManager.RemoveFromRoleAsync(user, "Company Worker");
+                if (!roleRemove.Succeeded)
                 {
-                    TempData["ErrorMessage"] = "An error occurred while removing your company worker role.";
-                    return RedirectToAction("Manage");
+                    TempData["ErrorMessage"] =
+                        "Error removing your company worker role.";
+                    return RedirectToAction(nameof(Manage));
                 }
-
-                // Refresh the sign-in so that the updated role is reflected in the user's claims.
                 await _signInManager.RefreshSignInAsync(user);
             }
 
             TempData["SuccessMessage"] = "You have successfully left the company.";
-            return RedirectToAction("Manage");
+            return RedirectToAction(nameof(Manage));
         }
-
-
-
 
     }
 }
