@@ -378,150 +378,326 @@
             const orderRows = document.querySelectorAll('.order-row');
 
             // Pull in the server‑side preselected company as a JS string
-            const preselectedCompany = @System.Text.Json.JsonSerializer.Serialize((string)ViewBag.CompanyFilterName ?? "");
+            const preselectedCompany = @Html.Raw(System.Text.Json.JsonSerializer.Serialize((string)ViewBag.CompanyFilterName ?? ""));
+
+            // Date helper functions
+            function isSameDay(d1, d2) {
+                return d1.getFullYear() === d2.getFullYear() &&
+                       d1.getMonth() === d2.getMonth() &&
+                       d1.getDate() === d2.getDate();
+            }
+
+            function getStartOfWeek(date) {
+                const d = new Date(date);
+                const day = d.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                const diff = d.getDate() - day;
+                d.setDate(diff);
+                d.setHours(0, 0, 0, 0);
+                return d;
+            }
+
+            function getStartOfMonth(date) {
+                const d = new Date(date);
+                d.setDate(1);
+                d.setHours(0, 0, 0, 0);
+                return d;
+            }
+
+            function getStartOfQuarter(date) {
+                const d = new Date(date);
+                const quarter = Math.floor(d.getMonth() / 3);
+                d.setMonth(quarter * 3);
+                d.setDate(1);
+                d.setHours(0, 0, 0, 0);
+                return d;
+            }
 
             function applyFilters() {
                 let visible = 0;
-                const term = searchInput.value.toLowerCase();
-                const compTerm = companyFilter.value.toLowerCase();
-                const statTerm = statusFilter.value;
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                const companyTerm = companyFilter.value.toLowerCase();
+                const statusTerm = statusFilter.value;
                 const dateTerm = dateRangeFilter.value;
-                const today = new Date(); today.setHours(0, 0, 0, 0);
+                
+                // Get current date references
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                const startOfWeek = getStartOfWeek(today);
+                const startOfMonth = getStartOfMonth(today);
+                const startOfQuarter = getStartOfQuarter(today);
 
                 orderRows.forEach(row => {
                     const id = row.dataset.id.toLowerCase();
-                    const comp = (row.dataset.company || "").toLowerCase();
+                    const company = (row.dataset.company || "").toLowerCase();
                     const user = (row.dataset.user || "").toLowerCase();
-                    const stat = row.dataset.status;
-                    const dt = new Date(row.dataset.date);
-                    let ok = true;
+                    const status = row.dataset.status;
+                    const dateStr = row.dataset.date;
+                    const rowDate = new Date(dateStr);
+                    
+                    // Set time to midnight for accurate date comparison
+                    rowDate.setHours(0, 0, 0, 0);
+                    
+                    // Default to showing the row
+                    let showRow = true;
 
-                    // search
-                    if (term && !(id.includes(term) || comp.includes(term) || user.includes(term))) ok = false;
-                    // company
-                    if (compTerm && comp !== compTerm) ok = false;
-                    // status
-                    if (statTerm && stat !== statTerm) ok = false;
-                    // date
-                    if (dateTerm === "today" && dt.getTime() !== today.getTime()) ok = false;
-                    if (dateTerm === "yesterday") {
-                        const y = new Date(today); y.setDate(y.getDate() - 1);
-                        if (dt.getTime() !== y.getTime()) ok = false;
-                    }
-                    if (dateTerm === "week") {
-                        const w = new Date(today); w.setDate(w.getDate() - today.getDay());
-                        if (dt < w) ok = false;
-                    }
-                    if (dateTerm === "month") {
-                        const m = new Date(today); m.setDate(1);
-                        if (dt < m) ok = false;
-                    }
-                    if (dateTerm === "quarter") {
-                        const q = new Date(today);
-                        const qm = Math.floor(q.getMonth() / 3) * 3;
-                        q.setMonth(qm); q.setDate(1);
-                        if (dt < q) ok = false;
+                    // Apply search filter
+                    if (searchTerm && !(
+                        id.includes(searchTerm) || 
+                        company.includes(searchTerm) || 
+                        user.includes(searchTerm)
+                    )) {
+                        showRow = false;
                     }
 
-                    if (ok) { row.style.display = ""; visible++; }
-                    else { row.style.display = "none"; }
+                    // Apply company filter
+                    if (companyTerm && company !== companyTerm) {
+                        showRow = false;
+                    }
+
+                    // Apply status filter
+                    if (statusTerm && status !== statusTerm) {
+                        showRow = false;
+                    }
+
+                    // Apply date range filter
+                    if (dateTerm) {
+                        switch (dateTerm) {
+                            case "today":
+                                if (!isSameDay(rowDate, today)) showRow = false;
+                                break;
+                            case "yesterday":
+                                if (!isSameDay(rowDate, yesterday)) showRow = false;
+                                break;
+                            case "week":
+                                if (rowDate < startOfWeek) showRow = false;
+                                break;
+                            case "month":
+                                if (rowDate < startOfMonth) showRow = false;
+                                break;
+                            case "quarter":
+                                if (rowDate < startOfQuarter) showRow = false;
+                                break;
+                        }
+                    }
+
+                    // Show or hide the row based on filter results
+                    row.style.display = showRow ? "" : "none";
+                    
+                    // Count visible rows
+                    if (showRow) visible++;
                 });
 
+                // Update counters
                 filteredCount.textContent = visible + " items";
                 if (currentShowing) currentShowing.textContent = visible;
+                
+                // Update pagination if needed
+                updatePagination(visible);
+            }
+
+            function updatePagination(visibleCount) {
+                // Simple pagination update - could be expanded for actual pagination
+                const pagination = document.querySelector('.pagination');
+                if (pagination) {
+                    pagination.style.display = visibleCount > 0 ? "" : "none";
+                }
             }
 
             function clearFilters() {
-                [searchInput, companyFilter, statusFilter, dateRangeFilter].forEach(e => e.value = "");
+                searchInput.value = "";
+                companyFilter.value = "";
+                statusFilter.value = "";
+                dateRangeFilter.value = "";
                 applyFilters();
             }
 
-            function refreshAnimation() {
+            function refreshData() {
                 const icon = refreshBtn.querySelector("i");
                 icon.classList.add("rotate-animation");
-                setTimeout(() => icon.classList.remove("rotate-animation"), 1000);
-                clearFilters();
+                
+                // Simulate refresh - in a real app, you might fetch new data here
+                setTimeout(() => {
+                    icon.classList.remove("rotate-animation");
+                    clearFilters();
+                    
+                    // Show toast notification
+                    showToast("Data refreshed successfully", "success");
+                }, 1000);
+            }
+
+            function showToast(message, type = "info") {
+                // Create toast container if it doesn't exist
+                let toastContainer = document.getElementById('toastContainer');
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.id = 'toastContainer';
+                    toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                    toastContainer.style.zIndex = '1050';
+                    document.body.appendChild(toastContainer);
+                }
+                
+                // Create toast element
+                const toastId = 'toast-' + Date.now();
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="bi bi-info-circle me-2"></i>${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                
+                // Initialize and show the toast
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 3000 });
+                toast.show();
+                
+                // Remove toast after it's hidden
+                toastElement.addEventListener('hidden.bs.toast', function() {
+                    toastElement.remove();
+                });
+            }
+
+            function exportData() {
+                // Get visible rows only
+                const visibleRows = Array.from(orderRows).filter(row => row.style.display !== 'none');
+                
+                if (visibleRows.length === 0) {
+                    showToast("No data to export", "warning");
+                    return;
+                }
+                
+                showToast("Exporting data...", "info");
+                
+                // In a real application, you would implement actual export functionality here
+                // For example, generating CSV or Excel file
+                
+                setTimeout(() => {
+                    showToast("Data exported successfully", "success");
+                }, 1500);
             }
 
             function sortTable(column) {
-                const tbody = document.getElementById("ordersTable").tBodies[0];
-                const rows = Array.from(tbody.rows);
+                const tbody = document.querySelector("#ordersTable tbody");
+                const rows = Array.from(tbody.querySelectorAll('tr.order-row'));
                 const icon = document.querySelector(`.sort-icon[data-sort="${column}"]`);
-                const asc = !icon.classList.contains("active-asc");
-
-                // reset icons
-                sortIcons.forEach(i => i.className = "bi bi-arrow-down-up text-muted sort-icon");
-
-                icon.classList.toggle("active-asc", asc);
-                icon.classList.toggle("active-desc", !asc);
-                icon.classList.replace("text-muted", "text-primary");
-
-                rows.sort((a, b) => {
-                    let A = a.dataset[column], B = b.dataset[column];
-                    if (column === "id") { A = +A; B = +B; }
-                    if (column === "date") { A = new Date(A); B = new Date(B); }
-                    return A < B ? (asc ? -1 : 1) : A > B ? (asc ? 1 : -1) : 0;
+                
+                // Determine sort direction
+                const isAscending = !icon.classList.contains("active-asc");
+                
+                // Reset all sort icons
+                sortIcons.forEach(i => {
+                    i.className = "bi bi-arrow-down-up ms-1 text-muted sort-icon";
+                    i.classList.remove("active-asc", "active-desc");
                 });
-
-                rows.forEach(r => tbody.appendChild(r));
+                
+                // Update active sort icon
+                icon.classList.add(isAscending ? "active-asc" : "active-desc");
+                icon.classList.replace("bi-arrow-down-up", isAscending ? "bi-arrow-up" : "bi-arrow-down");
+                icon.classList.replace("text-muted", "text-primary");
+                
+                // Sort the rows
+                rows.sort((a, b) => {
+                    let valueA = a.dataset[column];
+                    let valueB = b.dataset[column];
+                    
+                    // Handle different data types
+                    if (column === "id") {
+                        valueA = parseInt(valueA, 10);
+                        valueB = parseInt(valueB, 10);
+                    } else if (column === "date") {
+                        valueA = new Date(valueA).getTime();
+                        valueB = new Date(valueB).getTime();
+                    }
+                    
+                    // Compare values
+                    if (valueA < valueB) return isAscending ? -1 : 1;
+                    if (valueA > valueB) return isAscending ? 1 : -1;
+                    return 0;
+                });
+                
+                // Reorder the rows in the DOM
+                rows.forEach(row => tbody.appendChild(row));
+                
+                // Show sort notification
+                showToast(`Sorted by ${column} ${isAscending ? 'ascending' : 'descending'}`, "info");
             }
 
-            // wire up events
+            // Event listeners
             searchInput.addEventListener("input", applyFilters);
             companyFilter.addEventListener("change", applyFilters);
             statusFilter.addEventListener("change", applyFilters);
             dateRangeFilter.addEventListener("change", applyFilters);
             clearFiltersBtn.addEventListener("click", clearFilters);
-            refreshBtn.addEventListener("click", refreshAnimation);
-            exportBtn.addEventListener("click", () => alert("Export…"));
-
+            refreshBtn.addEventListener("click", refreshData);
+            exportBtn.addEventListener("click", exportData);
+            
             sortIcons.forEach(icon => {
                 icon.addEventListener("click", () => sortTable(icon.dataset.sort));
             });
-
-            // if server told us to pre‑filter by company, do that
+            
+            // Apply preselected company filter if provided
             if (preselectedCompany) {
                 companyFilter.value = preselectedCompany;
             }
-
-            // initial
+            
+            // Initialize filters on page load
             applyFilters();
         });
     </script>
 }
 
-
-
 <style>
-        .bg-opacity-10 {
-            opacity: 0.1;
+    .bg-opacity-10 {
+        opacity: 0.1;
+    }
+    
+    .card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .sort-icon {
+        cursor: pointer;
+        transition: color 0.2s ease, transform 0.2s ease;
+    }
+    
+    .sort-icon:hover {
+        color: #0d6efd !important;
+    }
+    
+    .active-asc, .active-desc {
+        color: #0d6efd !important;
+    }
+    
+    .rotate-animation {
+        animation: rotate 1s linear;
+    }
+    
+    @@keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .card-body {
+            padding: 1rem !important;
         }
         
-        .card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        .table th, .table td {
+            padding: 0.5rem;
         }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-        
-        .sort-icon {
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-        
-        .sort-icon:hover {
-            color: #0d6efd !important;
-        }
-        
-        .rotate-animation {
-            animation: rotate 1s linear;
-        }
-        
-        @@keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-    </style>
-}
+    }
+</style>

@@ -50,7 +50,6 @@ public class AdminController : Controller
             return RedirectToAction("ManageStorageWorkers");
         }
 
-        // Check if user already holds conflicting roles
         bool isCompanyOwner = await _userManager.IsInRoleAsync(user, "Company Owner");
         bool isCompanyWorker = await _userManager.IsInRoleAsync(user, "Company Worker");
 
@@ -66,7 +65,6 @@ public class AdminController : Controller
             return RedirectToAction("ManageStorageWorkers");
         }
 
-        // Check if user is already a Storage Worker
         if (await _userManager.IsInRoleAsync(user, "Storage Worker"))
         {
             TempData["ErrorMessage"] = "User is already a Storage Worker.";
@@ -86,7 +84,6 @@ public class AdminController : Controller
         return RedirectToAction("ManageStorageWorkers");
     }
 
-    // Allows an admin to remove a storage worker
     [HttpPost]
     public async Task<IActionResult> RemoveStorageWorker(string userId)
     {
@@ -111,9 +108,7 @@ public class AdminController : Controller
         return RedirectToAction("ManageStorageWorkers");
     }
 
-    // ----- Category Management Methods -----
 
-    // GET: Display a list of categories
     [HttpGet]
     public async Task<IActionResult> ManageCategories()
     {
