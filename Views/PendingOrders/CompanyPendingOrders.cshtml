@@ -1,58 +1,404 @@
 ﻿@model IEnumerable<WebApplicationForWarehouseManagementOfOfficeSupplies.Models.Request>
 
-<div class="container">
-    <h2 class="text-center">Pending Orders for Your Company</h2>
+@{
+    ViewData["Title"] = "Pending Orders";
+    
+    // Calculate summary statistics
+    var totalOrders = Model.Count();
+    var pendingApproval = Model.Count(r => r.Status == "Pending");
+    var processing = Model.Count(r => r.Status == "Processing");
+    var readyForDelivery = Model.Count(r => r.Status == "Ready for Delivery");
+}
 
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="mb-1 d-flex align-items-center">
+                <i class="bi bi-clipboard-check text-primary me-2"></i>
+                <span>Pending Orders</span>
+            </h2>
+            <p class="text-muted mb-0">Manage and track your company's pending order requests</p>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex justify-content-md-end mt-3 mt-md-0">
+                <div class="input-group me-2" style="max-width: 300px;">
+                    <input type="text" class="form-control" id="orderSearch" placeholder="Search orders...">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="btnRefresh">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <div>@TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>@TempData["ErrorMessage"]</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     }
 
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 bg-primary bg-opacity-10 me-3">
+                            <i class="bi bi-list-ul fs-4 text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Total Orders</h6>
+                            <h3 class="mb-0 fw-bold">@totalOrders</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 bg-warning bg-opacity-10 me-3">
+                            <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Pending Approval</h6>
+                            <h3 class="mb-0 fw-bold">@pendingApproval</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 bg-info bg-opacity-10 me-3">
+                            <i class="bi bi-gear fs-4 text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Processing</h6>
+                            <h3 class="mb-0 fw-bold">@processing</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 bg-success bg-opacity-10 me-3">
+                            <i class="bi bi-truck fs-4 text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Ready for Delivery</h6>
+                            <h3 class="mb-0 fw-bold">@readyForDelivery</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Request ID</th>
-                <th>Requested By</th>
-                <th>Products</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var request in Model)
+    <!-- Orders Table Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white p-4 border-bottom-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-ul text-primary me-2"></i>Order Requests
+                </h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+                        <li><a class="dropdown-item" href="#" data-filter="all">All Orders</a></li>
+                        <li><a class="dropdown-item" href="#" data-filter="Pending">Pending Approval</a></li>
+                        <li><a class="dropdown-item" href="#" data-filter="Processing">Processing</a></li>
+                        <li><a class="dropdown-item" href="#" data-filter="Ready for Delivery">Ready for Delivery</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.Any())
             {
-                <tr>
-                    <td>@request.RequestID</td>
-                    <td>@request.User.FirstName @request.User.LastName</td>
-                    <td>
-                        <ul>
-                            @foreach (var product in request.RequestProducts)
-                            {
-                                <li>@product.ProductBrand @product.ProductModel</li>
-                            }
-                        </ul>
-                    </td>
-                    <td>
-                        <ul>
-                            @foreach (var product in request.RequestProducts)
-                            {
-                                <li> @product.Quantity pcs.</li>
-                            }
-                        </ul>
-                    </td>
-                    <td>@request.Status</td>
-                    <td>
-                        <a asp-controller="PendingOrders" asp-action="CompanyOrderDetails" asp-route-id="@request.RequestID" class="btn btn-primary btn-sm">View</a>
-
-                    </td>
-                </tr>
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h4 class="mt-3">No Pending Orders</h4>
+                    <p class="text-muted">There are no pending orders for your company at this time.</p>
+                    <a href="#" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-lg me-1"></i>Create New Order
+                    </a>
+                </div>
             }
-        </tbody>
-    </table>
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="ordersTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Request ID</th>
+                                <th>Requested By</th>
+                                <th>Products</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in Model)
+                            {
+                                <tr class="order-row" data-status="@request.Status">
+                                    <td class="ps-4">
+                                        <span class="fw-medium">#@request.RequestID</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded-circle p-2 me-2">
+                                                <i class="bi bi-person text-secondary"></i>
+                                            </div>
+                                            <span>@request.User.FirstName @request.User.LastName</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="product-list">
+                                            @{
+                                                var productCount = request.RequestProducts.Count();
+                                                var displayCount = Math.Min(2, productCount);
+                                                var remainingCount = productCount - displayCount;
+                                            }
+                                            
+                                            @for (int i = 0; i < displayCount; i++)
+                                            {
+                                                var product = request.RequestProducts.ElementAt(i);
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <span class="badge bg-light text-dark me-2">@product.Quantity</span>
+                                                    <span class="text-truncate" style="max-width: 200px;">@product.ProductBrand @product.ProductModel</span>
+                                                </div>
+                                            }
+                                            
+                                            @if (remainingCount > 0)
+                                            {
+                                                <div class="text-muted small">
+                                                    <i class="bi bi-plus-circle me-1"></i>@remainingCount more item(s)
+                                                </div>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (request.CreatedAt != null)
+                                        {
+                                            <div>
+                                                <div>@request.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                                <small class="text-muted">@request.CreatedAt.ToString("h:mm tt")</small>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            string badgeClass = "bg-secondary";
+                                            string statusIcon = "bi-question-circle";
+                                            
+                                            switch (request.Status?.ToLower())
+                                            {
+                                                case "pending":
+                                                    badgeClass = "bg-warning text-dark";
+                                                    statusIcon = "bi-hourglass-split";
+                                                    break;
+                                                case "approved":
+                                                    badgeClass = "bg-success";
+                                                    statusIcon = "bi-check-circle";
+                                                    break;
+                                                case "processing":
+                                                    badgeClass = "bg-info";
+                                                    statusIcon = "bi-gear";
+                                                    break;
+                                                case "ready for delivery":
+                                                    badgeClass = "bg-primary";
+                                                    statusIcon = "bi-box-seam";
+                                                    break;
+                                                case "delivered":
+                                                    badgeClass = "bg-success";
+                                                    statusIcon = "bi-truck";
+                                                    break;
+                                                case "rejected":
+                                                    badgeClass = "bg-danger";
+                                                    statusIcon = "bi-x-circle";
+                                                    break;
+                                            }
+                                        }
+                                        <span class="badge @badgeClass">
+                                            <i class="bi @statusIcon me-1"></i>@request.Status
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <a asp-controller="PendingOrders" asp-action="CompanyOrderDetails" asp-route-id="@request.RequestID" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye me-1"></i>View
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split" 
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                <span class="visually-hidden">Toggle Dropdown</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="#">
+                                                        <i class="bi bi-x-circle me-2"></i>Cancel
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="card-footer bg-white p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Showing <span id="currentShowing">@Model.Count()</span> of @Model.Count() entries</span>
+                        </div>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Search functionality
+            const searchInput = document.getElementById('orderSearch');
+            const orderRows = document.querySelectorAll('.order-row');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+                
+                orderRows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    const isVisible = text.includes(searchTerm);
+                    
+                    row.style.display = isVisible ? '' : 'none';
+                    if (isVisible) visibleCount++;
+                });
+                
+                document.getElementById('currentShowing').textContent = visibleCount;
+            });
+            
+            // Filter dropdown
+            const filterLinks = document.querySelectorAll('[data-filter]');
+            
+            filterLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const filter = this.dataset.filter;
+                    let visibleCount = 0;
+                    
+                    orderRows.forEach(row => {
+                        const status = row.dataset.status;
+                        const isVisible = filter === 'all' || status === filter;
+                        
+                        row.style.display = isVisible ? '' : 'none';
+                        if (isVisible) visibleCount++;
+                    });
+                    
+                    document.getElementById('currentShowing').textContent = visibleCount;
+                    document.getElementById('filterDropdown').innerHTML = `<i class="bi bi-funnel me-1"></i>${filter === 'all' ? 'Filter' : filter}`;
+                });
+            });
+            
+            // Refresh button
+            document.getElementById('btnRefresh').addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                icon.classList.add('rotate-animation');
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            });
+        });
+    </script>
+    
+    <style>
+        .bg-opacity-10 {
+            opacity: 0.1;
+        }
+        
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        .product-list {
+            max-width: 250px;
+        }
+        
+        .rotate-animation {
+            animation: rotate 1s linear;
+        }
+        
+        @@keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .card-body {
+                padding: 1rem !important;
+            }
+            
+            .table th, .table td {
+                padding: 0.5rem;
+            }
+            
+            .product-list {
+                max-width: 150px;
+            }
+        }
+    </style>
+}

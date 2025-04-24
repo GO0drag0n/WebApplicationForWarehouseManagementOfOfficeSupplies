@@ -255,6 +255,32 @@
                             <i class="bi bi-x-circle"></i>
                         </button>
                     }
+                    else if (Model.IsStorageWorker)
+                    {
+                        <div class="p-3 @bgClass rounded-3 mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-box text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Storage Worker</h6>
+                                    <p class="mb-0 text-muted small">You can manage inventory and orders</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary d-flex align-items-center justify-content-between mb-4">
+                            <span><i class="bi bi-box-seam me-2"></i>Manage Inventory</span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        <a asp-controller="PendingOrders" asp-action="Pending" class="btn btn-outline-primary d-flex align-items-center justify-content-between mb-4">
+                            <span><i class="bi bi-cart me-2"></i>Manage Orders</span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        <a asp-controller="Product" asp-action="LowQuantityAlert" class="btn btn-outline-primary d-flex align-items-center justify-content-between mb-4">
+                            <span><i class="bi bi-exclamation-triangle me-2"></i>Low Stock Alerts</span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+
+                    }
                     else
                     {
                         <div class="p-3 @bgClass rounded-3 mb-4">

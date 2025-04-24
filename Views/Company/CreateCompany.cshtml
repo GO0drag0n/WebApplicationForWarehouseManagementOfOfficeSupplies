@@ -1,25 +1,151 @@
 ﻿@model WebApplicationForWarehouseManagementOfOfficeSupplies.ViewModels.CompanyCreateViewModel
 
-<form asp-action="CreateCompany" method="post">
-    <div class="form-group">
-        <label asp-for="CompanyName"></label>
-        <input asp-for="CompanyName" class="form-control" />
-        <span asp-validation-for="CompanyName" class="text-danger"></span>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="row g-0">
+                    <!-- Left side - Image/Branding -->
+                    <div class="col-md-5 bg-primary text-white d-none d-md-block">
+                        <div class="d-flex flex-column h-100 p-4 justify-content-between">
+                            <div>
+                                <h3 class="fw-bold mb-2">Join Our Network</h3>
+                                <p class="lead">Streamline your office supplies management with our warehouse solutions.</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                                        <span>Efficient inventory management</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                                        <span>Streamlined ordering process</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                                        <span>Dedicated customer support</span>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-white rounded-circle p-1 me-2">
+                                        <i class="bi bi-telephone-fill text-primary"></i>
+                                    </div>
+                                    <span>Need help? Call us at (123) 456-7890</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right side - Form -->
+                    <div class="col-md-7">
+                        <div class="card-body p-4 p-lg-5">
+                            <div class="text-center mb-4">
+                                <h2 class="fw-bold mb-1">Become Our Client</h2>
+                                <p class="text-muted">Complete the form below to register your company</p>
+                            </div>
+
+                            <form asp-action="CreateCompany" method="post">
+                                <div class="mb-4">
+                                    <label asp-for="CompanyName" class="form-label fw-medium">Company Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="bi bi-building"></i>
+                                        </span>
+                                        <input asp-for="CompanyName" class="form-control border-start-0 ps-0" placeholder="Enter your company name" />
+                                    </div>
+                                    <span asp-validation-for="CompanyName" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="CompanyAddress" class="form-label fw-medium">Company Address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="bi bi-geo-alt"></i>
+                                        </span>
+                                        <input asp-for="CompanyAddress" class="form-control border-start-0 ps-0" placeholder="Enter your business address" />
+                                    </div>
+                                    <span asp-validation-for="CompanyAddress" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="CompanyPhone" class="form-label fw-medium">Phone Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="bi bi-telephone"></i>
+                                        </span>
+                                        <input asp-for="CompanyPhone" class="form-control border-start-0 ps-0" placeholder="Enter your contact number" />
+                                    </div>
+                                    <span asp-validation-for="CompanyPhone" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="VATNumber" class="form-label fw-medium">VAT Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="bi bi-receipt"></i>
+                                        </span>
+                                        <input asp-for="VATNumber" class="form-control border-start-0 ps-0" placeholder="Enter your VAT/Tax ID" />
+                                    </div>
+                                    <span asp-validation-for="VATNumber" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                                        <label class="form-check-label small" for="termsCheck">
+                                            I agree to the <a href="#" class="text-decoration-none">Terms of Service</a> and <a href="#" class="text-decoration-none">Privacy Policy</a>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg py-2 fw-medium">
+                                        <i class="bi bi-check2-circle me-2"></i>Register Company
+                                    </button>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <p class="text-muted small mb-0">
+                                        Already registered? <a href="#" class="text-decoration-none">Sign in here</a>
+                                    </p>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label asp-for="CompanyAddress"></label>
-        <input asp-for="CompanyAddress" class="form-control" />
-        <span asp-validation-for="CompanyAddress" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="CompanyPhone"></label>
-        <input asp-for="CompanyPhone" class="form-control" />
-        <span asp-validation-for="CompanyPhone" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="VATNumber"></label>
-        <input asp-for="VATNumber" class="form-control" />
-        <span asp-validation-for="VATNumber" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-primary">Create</button>
-</form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<style>
+    .rounded-4 {
+        border-radius: 0.75rem !important;
+    }
+
+    .input-group-text, .form-control {
+        border-color: #dee2e6;
+    }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        }
+
+    .btn-primary {
+        transition: all 0.2s ease;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+        }
+</style>

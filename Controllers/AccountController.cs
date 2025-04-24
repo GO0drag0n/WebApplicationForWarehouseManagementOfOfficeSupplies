@@ -18,10 +18,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly ApplicationDbContext _context;
 
-        public AccountController(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager,
-            ApplicationDbContext context)
+        public AccountController( UserManager<User> userManager, SignInManager<User> signInManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -135,14 +132,13 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
 
             // SuccessMessage stays in TempData to be rendered by the view
 
-            // 2) Build the standard ManageAccountViewModel
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return RedirectToAction(nameof(Login));
+            if (user == null) return RedirectToAction(nameof(Login));
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
             var isCompanyOwner = await _userManager.IsInRoleAsync(user, "Company Owner");
             var isCompanyWorker = await _userManager.IsInRoleAsync(user, "Company Worker");
+            var isStorageWorker = await _userManager.IsInRoleAsync(user, "Storage Worker");
 
             string companyName = null;
             Guid companyId = Guid.Empty;
@@ -166,6 +162,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 IsAdmin = isAdmin,
                 IsCompanyOwner = isCompanyOwner,
                 IsCompanyWorker = isCompanyWorker,
+                IsStorageWorker = isStorageWorker,
                 CompanyName = companyName,
                 CompanyId = companyId
             };
@@ -174,8 +171,7 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
         }
 
         [HttpGet]
-        public IActionResult ChangePassword()
-            => RedirectToAction(nameof(Manage));
+        public IActionResult ChangePassword() => RedirectToAction(nameof(Manage));
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ManageAccountViewModel form)

@@ -79,6 +79,7 @@ public class AdminController : Controller
 
         // Assign the "Storage Worker" role
         await _userManager.AddToRoleAsync(user, "Storage Worker");
+        // set the bool is storageWorker
         TempData["SuccessMessage"] = "User has been successfully assigned as a Storage Worker.";
 
         return RedirectToAction("ManageStorageWorkers");

@@ -86,7 +86,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             return View(viewModel);
         }
 
-        // POST: Request/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateRequestViewModel model)
@@ -109,7 +108,10 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 }
             }
 
-            var selectedProducts = model.RequestProducts.Where(p => p.ProductQuantity > 0).ToList();
+            var selectedProducts = model.RequestProducts
+        .Where(p => p.ProductQuantity > 0)
+        .ToList();
+
             if (!selectedProducts.Any())
             {
                 ModelState.AddModelError(string.Empty,
@@ -120,7 +122,8 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
             decimal totalPrice = 0m;
             foreach (var product in selectedProducts)
             {
-                var dbProduct = await _context.Products.FirstOrDefaultAsync(p => p.ProductID == product.ProductID);
+                var dbProduct = await _context.Products
+                    .FirstOrDefaultAsync(p => p.ProductID == product.ProductID);
                 if (dbProduct == null)
                 {
                     ModelState.AddModelError(string.Empty,
@@ -140,18 +143,37 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 totalPrice += product.ProductQuantity * dbProduct.Price;
             }
 
+            // Fill in brand/model for the Request header
             var first = selectedProducts.First();
             model.RequestProductBrand = first.ProductBrand;
             model.RequestProductModel = first.ProductModel;
 
-            var userIdPost = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdPost))
+            // 1) get current user
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
             {
                 ModelState.AddModelError(string.Empty, "User is not logged in.");
                 return View(model);
             }
 
-            var companyPost = await _context.Companies.FirstOrDefaultAsync(c => c.OwnerId == userIdPost);
+            // 2) resolve Company
+            Company companyPost = null;
+
+            if (User.IsInRole("Company Owner"))
+            {
+                companyPost = await _context.Companies
+                    .FirstOrDefaultAsync(c => c.OwnerId == userId);
+            }
+            else if (User.IsInRole("Company Worker"))
+            {
+                // look up via UserCompany join‐table
+                var uc = await _context.UserCompanies
+                    .Include(uc => uc.Company)
+                    .FirstOrDefaultAsync(uc => uc.UserId == userId);
+
+                companyPost = uc?.Company;
+            }
+
             if (companyPost == null)
             {
                 ModelState.AddModelError(string.Empty,
@@ -159,17 +181,17 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 return View(model);
             }
 
-            // Discount calculation
+            // 3) Discount calculation
             decimal prospectiveQov = companyPost.QuarterOrderValue + totalPrice;
             int newLevel = (int)(prospectiveQov / 1000m);
             newLevel = Math.Min(newLevel, 5);
             decimal discountPct = newLevel * 0.025m;
             decimal discountedTotal = totalPrice * (1 - discountPct);
 
-            // Create and save request
+            // 4) create & save Request
             var request = new Request
             {
-                UserID = userIdPost,
+                UserID = userId,
                 Status = model.RequestStatus,
                 Brand = model.RequestProductBrand,
                 Model = model.RequestProductModel,
@@ -197,5 +219,6 @@ namespace WebApplicationForWarehouseManagementOfOfficeSupplies.Controllers
                 $"Request created with {discountPct:P1} discount (level {newLevel})!";
             return RedirectToAction("Create");
         }
+
     }
 }
