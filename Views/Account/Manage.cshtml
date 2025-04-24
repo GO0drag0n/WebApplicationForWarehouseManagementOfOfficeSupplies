@@ -151,6 +151,11 @@
                             headerHtml = "<i class=\"bi bi-building text-primary me-2\"></i>Company Information";
                             bgClass = "bg-light-primary";
                         }
+                        else if (Model.IsStorageWorker)
+                        {
+                            headerHtml = "<i class=\"bi bi-building text-primary me-2\"></i>Storage Worker";
+                            bgClass = "bg-light-primary";
+                        }
                         else
                         {
                             headerHtml = "<i class=\"bi bi-building-add text-primary me-2\"></i>Join a Company";

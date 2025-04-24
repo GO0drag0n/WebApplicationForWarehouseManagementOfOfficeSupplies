@@ -18,14 +18,22 @@
             Your <span class="text-warning">trusted partner</span> in storing <br> all kinds of stationery
         </h1>
         <div class="d-block d-md-none text-center mt-3">
-            <button class="btn btn-warning text-dark fw-bold" style="padding: 0.75rem 1.5rem; font-size: 1.2rem;">
+            <button type="button"
+                    class="btn btn-warning text-dark fw-bold"
+                    style="padding: 0.75rem 1.5rem; font-size: 1.2rem;"
+                    onclick="window.location='@Url.Action("AboutUs","Home")'">
                 Learn More
             </button>
         </div>
+
     </div>
 
-    <div class="position-absolute top-50 end-0 translate-middle-y p-3" style="margin-right: 25rem">
-        <button class="btn btn-warning text-dark fw-bold" style="padding: 1rem 2rem; font-size: 1.5rem;">Learn More</button>
+    <div class="position-absolute top-50 end-0 translate-middle-y p-3" style="margin-right:25rem">
+        <a asp-controller="Home" asp-action="AboutUs"
+           class="btn btn-warning text-dark fw-bold"
+           style="padding: 1rem 2rem; font-size: 1.5rem;">
+            Learn More
+        </a>
     </div>
 </section>
 
