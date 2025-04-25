@@ -42,7 +42,6 @@
                             <div class="col-md-3">
                                 <div class="form-floating">
                                     <select name="categoryId" class="form-select" id="categoryFilter">
-                                        <option value="">All Categories</option>
                                         @{
                                             var categories = (IEnumerable<SelectListItem>)ViewBag.Categories;
                                             var currentCategory = ViewContext.HttpContext.Request.Query["categoryId"].ToString();
